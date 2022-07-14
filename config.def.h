@@ -1,4 +1,5 @@
 /* See LICENSE file for copyright and license details. */
+#include <X11/XF86keysym.h>
 
 /* appearance */
 static const unsigned int borderpx  = 3;        /* border pixel of windows */
@@ -60,18 +61,29 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "st", NULL };
+static const char *volume_increase[] = {"volume.sh", "up", NULL};
+static const char *volume_decrease[] = {"volume.sh", "down", NULL};
+static const char *volume_mute[] = {"volume.sh", "mute", NULL};
+static const char *light_increase[] = {"brightness.sh", "up", NULL};
+static const char *light_decrease[] = {"brightness.sh", "down", NULL};
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
+	{0,              XF86XK_AudioMute,         spawn,          {.v = volume_mute}},
+        {0,              XF86XK_AudioRaiseVolume,  spawn,          {.v = volume_increase}},
+        {0,              XF86XK_AudioLowerVolume,  spawn,          {.v = volume_decrease}},
+        {0,              XF86XK_MonBrightnessUp,   spawn,          {.v = light_increase}},
+	{0,              XF86XK_MonBrightnessDown, spawn,          {.v = light_decrease}},
+	{ MODKEY,                       XK_b,      spawn,          SHCMD("toggle_bar.sh") },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
-	{ MODKEY,                       XK_b,      togglebar,      {0} },
+	{ MODKEY|ShiftMask,             XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_h,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_l,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
-	{ MODKEY,                       XK_j,      setmfact,       {.f = -0.05} },
-	{ MODKEY,                       XK_k,      setmfact,       {.f = +0.05} },
+	{ MODKEY,                       XK_Left,   setmfact,       {.f = -0.05} },
+	{ MODKEY,                       XK_Right,  setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_m,      zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY,                       XK_c,      killclient,     {0} },
