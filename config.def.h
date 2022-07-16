@@ -6,18 +6,22 @@ static const unsigned int borderpx  = 3;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[]          = { "JetBrainsMono Nerd Font:style=Medium:size=10", 
-                                        "JoyPixels:size=10"};
+static const char *fonts[]          = { "JetBrainsMono Nerd Font:style=Medium:size=12", 
+                                        "JoyPixels:size=12"};
 static const char dmenufont[]       = "monospace:size=10";
-static const char col_gray1[]       = "#222222";
-static const char col_gray2[]       = "#444444";
-static const char col_gray3[]       = "#bbbbbb";
-static const char col_gray4[]       = "#eeeeee";
-static const char col_cyan[]        = "#005577";
-static const char *colors[][3]      = {
-	/*               fg         bg         border   */
-	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
-	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
+
+/* following six colours will be overwritten by Xresources */
+static char normbgcolor[]           = "#222222";
+static char normbordercolor[]       = "#444444";
+static char normfgcolor[]           = "#bbbbbb";
+static char selfgcolor[]            = "#eeeeee";
+static char selbordercolor[]        = "#005577";
+static char selbgcolor[]            = "#005577";
+
+static char *colors[][3] = {
+       /*               fg           bg           border   */
+       [SchemeNorm] = { normfgcolor, normbgcolor, normbordercolor },
+       [SchemeSel]  = { selfgcolor,  selbgcolor,  selbordercolor  },
 };
 
 /* tagging */
@@ -50,8 +54,8 @@ static const Layout layouts[] = {
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
-	/* control which tags should be given for a FUTURE client */ \
-	/*{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} },*/ \
+	/* control which tags (views) should be given for FUTURE client(s) */ \
+	{ MODKEY|ControlMask|ShiftMask, KEY,      toggleview,     {.ui = 1 << TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 	/* control which tags should be given for an EXISTING client */ \
 	{ MODKEY|ControlMask, KEY,      toggletag,      {.ui = 1 << TAG} },
@@ -61,13 +65,25 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
+static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbordercolor, "-sf", selfgcolor, NULL };
 static const char *termcmd[]  = { "st", NULL };
 static const char *volume_increase[] = {"volume.sh", "up", NULL};
 static const char *volume_decrease[] = {"volume.sh", "down", NULL};
 static const char *volume_mute[] = {"volume.sh", "mute", NULL};
 static const char *light_increase[] = {"brightness.sh", "up", NULL};
 static const char *light_decrease[] = {"brightness.sh", "down", NULL};
+
+/*
+ * Xresources preferences to load at startup
+ */
+ResourcePref resources[] = {
+		{ "background", STRING,  &normbgcolor },
+		{ "color6",     STRING,  &normbordercolor },
+		{ "foreground", STRING,  &normfgcolor },
+		{ "color4",     STRING,  &selbgcolor },
+		{ "color9",     STRING,  &selbordercolor },
+		{ "foreground", STRING,  &selfgcolor },
+};
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -80,8 +96,8 @@ static Key keys[] = {
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY|ShiftMask,             XK_b,      togglebar,      {0} },
-	{ MODKEY,                       XK_h,      focusstack,     {.i = +1 } },
-	{ MODKEY,                       XK_l,      focusstack,     {.i = -1 } },
+	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
+	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_Left,   setmfact,       {.f = -0.05} },
