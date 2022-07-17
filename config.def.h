@@ -46,11 +46,12 @@ static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen win
 #include "fibonacci.c"
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "[]=",      tile },    /* first entry is default */
+	{ "M[]",      deck },  /* first entry is default */
 	{ "[M]",      monocle },
-	{ "[D]",      deck },
- 	{ "[@]",      spiral },
+	{ "TTT",      bstack },
 	{ "><>",      NULL },    /* no layout function means floating behavior */
+ 	{ "[@]",      spiral },
+	{ "[]=",      tile },    
 };
 
 /* key definitions */
