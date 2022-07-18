@@ -93,7 +93,7 @@ struct Client {
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
 	int bw, oldbw;
-	unsigned int tags;
+	unsigned int tags, jumpmark;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
 	Client *next;
 	Client *snext;
@@ -187,13 +187,14 @@ static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
+static void msaltfoucs(const Arg *arg);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
 static long getstate(Window w);
 static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, int focused);
 static void grabkeys(void);
-static void incnmaster(const Arg *arg);
+/*static void incnmaster(const Arg *arg);*/
 static void keypress(XEvent *e);
 static void killclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
@@ -924,6 +925,36 @@ focusstack(const Arg *arg)
 	}
 }
 
+/* to alternate focus between master client and stack client
+ * note that incnmaster function is disabled
+ */
+void
+msaltfoucs(const Arg *arg)
+{
+	Client *c = NULL;
+	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen))
+		return;
+	if (!selmon->clients->next)
+		return;
+
+	/* if currently in the master area, find the jump mark and jump back*/
+	if (selmon->sel == selmon->clients) {
+		for (c = selmon->clients->next; c && !c->jumpmark; c = c->next);
+		if (!c) {
+			c = selmon->clients->next;
+		} else {
+			/* found mark, set it back to false */
+			c->jumpmark = 0;
+		}
+	} else {
+	        /* remember jump mark, go to master client */
+		selmon->sel->jumpmark = 1;
+		c = selmon->clients;
+	}
+	focus(c);
+	restack(selmon);
+}
+
 Atom
 getatomprop(Client *c, Atom prop)
 {
@@ -1032,12 +1063,13 @@ grabkeys(void)
 	}
 }
 
-void
-incnmaster(const Arg *arg)
-{
-	selmon->nmaster = MAX(selmon->nmaster + arg->i, 0);
-	arrange(selmon);
-}
+/*void
+*incnmaster(const Arg *arg)
+*{
+*	selmon->nmaster = MAX(selmon->nmaster + arg->i, 0);
+*	arrange(selmon);
+*}
+*/
 
 #ifdef XINERAMA
 static int
