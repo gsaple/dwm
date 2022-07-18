@@ -906,9 +906,11 @@ focusstack(const Arg *arg)
 	if (arg->i > 0) {
 		for (c = selmon->sel->next; c && !ISVISIBLE(c); c = c->next);
 		if (!c)
-			for (c = selmon->clients; c && !ISVISIBLE(c); c = c->next);
+			/* do not cycle back to master */
+			for (c = selmon->clients->next; c && !ISVISIBLE(c); c = c->next);
 	} else {
-		for (i = selmon->clients; i != selmon->sel; i = i->next)
+		/* do not cycle back to master */
+		for (i = selmon->clients->next; i && i != selmon->sel; i = i->next)
 			if (ISVISIBLE(i))
 				c = i;
 		if (!c)
