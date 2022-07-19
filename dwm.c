@@ -904,6 +904,10 @@ focusstack(const Arg *arg)
 
 	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen))
 		return;
+	/* move only for stack area, jump from master not allowed*/
+	if (selmon->sel == selmon->clients)
+		return;
+
 	if (arg->i > 0) {
 		for (c = selmon->sel->next; c && !ISVISIBLE(c); c = c->next);
 		if (!c)
