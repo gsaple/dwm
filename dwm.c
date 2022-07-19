@@ -187,6 +187,7 @@ static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
+static void writeltsymbol(Monitor *m, Client *c);
 static void msaltfoucs(const Arg *arg);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
@@ -702,10 +703,9 @@ deck(Monitor *m) {
 	for(n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
 	if(n == 0)
 		return;
-
 	if(n > m->nmaster) {
 		mw = m->nmaster ? m->ww * m->mfact : 0;
-		snprintf(m->ltsymbol, sizeof m->ltsymbol, "M[%d]", n - m->nmaster);
+		/*snprintf(m->ltsymbol, sizeof m->ltsymbol, "M[%d]", n - m->nmaster);*/
 	}
 	else
 		mw = m->ww;
@@ -922,6 +922,27 @@ focusstack(const Arg *arg)
 	if (c) {
 		focus(c);
 		restack(selmon);
+		writeltsymbol(selmon, c);
+	}
+}
+
+/* over write layout symbol */
+void writeltsymbol(Monitor *m, Client *current) {
+	unsigned int n = 0, i = 0;
+	Client *c = NULL;
+
+	for (c = m->clients; c; c = c->next)
+		if (ISVISIBLE(c))
+			n++;
+	for (c = m->clients; c && c != current; c = c->next)
+		if (ISVISIBLE(c))
+			i++;
+	/* if not float layout */
+	if(m->lt[m->sellt]->arrange){
+		if (i == 0)
+			snprintf(m->ltsymbol, sizeof m->ltsymbol,"🍖");
+		else
+			snprintf(m->ltsymbol, sizeof m->ltsymbol, "🍼 %d/%d", i, n - 1);
 	}
 }
 
@@ -953,6 +974,7 @@ msaltfoucs(const Arg *arg)
 	}
 	focus(c);
 	restack(selmon);
+	writeltsymbol(selmon, c);
 }
 
 Atom
@@ -1204,14 +1226,7 @@ maprequest(XEvent *e)
 void
 monocle(Monitor *m)
 {
-	unsigned int n = 0;
 	Client *c;
-
-	for (c = m->clients; c; c = c->next)
-		if (ISVISIBLE(c))
-			n++;
-	if (n > 0) /* override layout symbol */
-		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[M%d]", n);
 	for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
 		resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, 0);
 }
