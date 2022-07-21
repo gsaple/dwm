@@ -188,6 +188,7 @@ static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
+static Client *findmaster(void);
 static void writeltsymbol(Monitor *m, Client *c);
 static void msaltfoucs(const Arg *arg);
 static Atom getatomprop(Client *c, Atom prop);
@@ -988,21 +989,22 @@ void
 focusstack(const Arg *arg)
 {
 	Client *c = NULL, *i;
+	Client *master = findmaster();
 
 	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen))
 		return;
 	/* move only for stack area, jump from master not allowed*/
-	if (selmon->sel == selmon->clients)
+	if (selmon->sel == master)
 		return;
 
 	if (arg->i > 0) {
 		for (c = selmon->sel->next; c && !ISVISIBLE(c); c = c->next);
 		if (!c)
 			/* do not cycle back to master */
-			for (c = selmon->clients->next; c && !ISVISIBLE(c); c = c->next);
+			for (c = master->next; c && !ISVISIBLE(c); c = c->next);
 	} else {
 		/* do not cycle back to master */
-		for (i = selmon->clients->next; i && i != selmon->sel; i = i->next)
+		for (i = master->next; i && i != selmon->sel; i = i->next)
 			if (ISVISIBLE(i))
 				c = i;
 		if (!c)
@@ -1017,8 +1019,21 @@ focusstack(const Arg *arg)
 	}
 }
 
+/* find the master client that has the current selected tag */
+Client *
+findmaster(void) {
+	Client *c = NULL;
+	unsigned aim_tag = selmon->tagset[selmon->seltags];
+	for (c = selmon->clients; c; c = c->next) {
+		if ((c->tags & aim_tag) != 0)
+			break;
+	}
+	return c;
+}
+
 /* over write layout symbol */
-void writeltsymbol(Monitor *m, Client *move_to) {
+void 
+writeltsymbol(Monitor *m, Client *move_to) {
 	unsigned int n = 0, i = 0;
 	Client *c = NULL;
 
@@ -1044,16 +1059,17 @@ void
 msaltfoucs(const Arg *arg)
 {
 	Client *c = NULL;
+	Client *master = findmaster();
 	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen))
 		return;
-	if (!selmon->clients->next)
+	if (!nexttiled(master->next))
 		return;
 
 	/* if currently in the master area, find the jump mark and jump back*/
-	if (selmon->sel == selmon->clients) {
-		for (c = selmon->clients->next; c && !c->jumpmark; c = c->next);
+	if (selmon->sel == master) {
+		for (c = master->next; c && !c->jumpmark; c = c->next);
 		if (!c) {
-			c = selmon->clients->next;
+			c = master->next;
 		} else {
 			/* found mark, set it back to false */
 			c->jumpmark = 0;
@@ -1061,7 +1077,7 @@ msaltfoucs(const Arg *arg)
 	} else {
 	        /* remember jump mark, go to master client */
 		selmon->sel->jumpmark = 1;
-		c = selmon->clients;
+		c = master;
 	}
 	focus(c);
 	restack(selmon);
