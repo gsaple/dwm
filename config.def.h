@@ -103,13 +103,13 @@ static Key keys[] = {
         {0,              XF86XK_MonBrightnessUp,   spawn,          {.v = light_increase}},
 	{0,              XF86XK_MonBrightnessDown, spawn,          {.v = light_decrease}},
 	{ MODKEY,                       XK_b,      spawn,          SHCMD("toggle_bar.sh") },
-	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
+	{ MODKEY,                       XK_d,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY|ShiftMask,             XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
-	/*{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },*/
-	/*{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },*/
+	{ MODKEY,                       XK_n,      shiftview,     {.i = +1 } },
+	{ MODKEY,                       XK_p,      shiftview,     {.i = -1 } },
 	{ MODKEY,                       XK_m,      msaltfoucs,     {0} },
 	{ MODKEY,                       XK_z,      zoom,           {0} },
 	{ MODKEY,                       XK_Left,   setmfact,       {.f = -0.05} },

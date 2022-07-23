@@ -264,6 +264,7 @@ static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
 static void load_xresources(void);
 static void resource_load(XrmDatabase db, char *name, enum resource_type rtype, void *dst);
+void shiftview(const Arg *arg);
 
 /* variables */
 static const char broken[] = "broken";
@@ -2453,6 +2454,21 @@ load_xresources(void)
 	for (p = resources; p < resources + LENGTH(resources); p++)
 		resource_load(db, p->name, p->type, p->dst);
 	XCloseDisplay(display);
+}
+
+void
+shiftview(const Arg *arg) {
+        Arg shifted;
+
+        if(arg->i > 0) // left circular shift
+                shifted.ui = (selmon->tagset[selmon->seltags] << arg->i)
+                   | (selmon->tagset[selmon->seltags] >> (LENGTH(tags) - arg->i));
+
+        else // right circular shift
+                shifted.ui = selmon->tagset[selmon->seltags] >> (- arg->i)
+                   | selmon->tagset[selmon->seltags] << (LENGTH(tags) + arg->i);
+
+        view(&shifted);
 }
 
 int
