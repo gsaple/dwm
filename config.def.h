@@ -103,6 +103,7 @@ static Key keys[] = {
         {0,              XF86XK_MonBrightnessUp,   spawn,          {.v = light_increase}},
 	{0,              XF86XK_MonBrightnessDown, spawn,          {.v = light_decrease}},
 	{ MODKEY,                       XK_t,      spawn,          SHCMD("toggle_bar.sh") },
+	{ MODKEY,                       XK_w,      spawn,          SHCMD("wallpaper.sh") },
 	{ MODKEY,                       XK_d,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
