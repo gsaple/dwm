@@ -1927,14 +1927,21 @@ togglebar(const Arg *arg)
 void
 togglefloating(const Arg *arg)
 {
+	// modify to spawn the to-be-floating window at centre f% of the monitor
+	int x,y,w,h;
+	float f = 0.80;
 	if (!selmon->sel)
 		return;
 	if (selmon->sel->isfullscreen) /* no support for fullscreen windows */
 		return;
 	selmon->sel->isfloating = !selmon->sel->isfloating || selmon->sel->isfixed;
-	if (selmon->sel->isfloating)
-		resize(selmon->sel, selmon->sel->x, selmon->sel->y,
-			selmon->sel->w, selmon->sel->h, 0);
+	if (selmon->sel->isfloating) {
+		w = selmon->ww * f;
+	        h = selmon->wh * f;
+		x = selmon->wx + (selmon->ww - w) / 2;
+		y = selmon->wy + (selmon->wh - h) / 2;
+		resize(selmon->sel, x, y, w, h, 0);
+	}
 	arrange(selmon);
 }
 
