@@ -16,18 +16,40 @@ static const char *fonts[]          = { "JetBrainsMono Nerd Font:style=Medium:si
                                         "JoyPixels:size=12"};
 static const char dmenufont[]       = "monospace:size=10";
 
-/* following six colours will be overwritten by Xresources */
+/* following colours only for declaring purposes; values will be overwritten by Xresources */
 static char normbgcolor[]           = "#222222";
 static char normbordercolor[]       = "#444444";
 static char normfgcolor[]           = "#bbbbbb";
 static char selfgcolor[]            = "#eeeeee";
 static char selbordercolor[]        = "#005577";
 static char selbgcolor[]            = "#005577";
+static char tag1[]                  = "#222222";
+static char tag2[]                  = "#222222";
+static char tag3[]                  = "#222222";
+static char tag4[]                  = "#222222";
+static char tag5[]                  = "#222222";
+static char tag6[]                  = "#222222";
+static char tag7[]                  = "#222222";
+static char tag8[]                  = "#222222";
+static char tag9[]                  = "#222222";
 
 static char *colors[][3] = {
        /*               fg           bg           border   */
        [SchemeNorm] = { normfgcolor, normbgcolor, normbordercolor },
        [SchemeSel]  = { selfgcolor,  selbgcolor,  selbordercolor  },
+};
+
+static char *tag_colors[][2] = {
+       /* fg           bg  */
+       { tag1,     normbgcolor},
+       { tag2,     normbgcolor},
+       { tag3,     normbgcolor},
+       { tag4,     normbgcolor},
+       { tag5,     normbgcolor},
+       { tag6,     normbgcolor},
+       { tag7,     normbgcolor},
+       { tag8,     normbgcolor},
+       { tag9,     normbgcolor},
 };
 
 /* tagging */
@@ -64,10 +86,10 @@ static const Layout layouts[] = {
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
-	/* control which tags (views) should be given for FUTURE client(s) */ \
+	/* new tags will be toggled for the new, but not yet spawned client(s) */ \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggleview,     {.ui = 1 << TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
-	/* control which tags should be given for an EXISTING client */ \
+	/* new tags will be toggled for the current focused client */ \
 	{ MODKEY|ControlMask, KEY,      toggletag,      {.ui = 1 << TAG} },
 
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
@@ -93,6 +115,15 @@ ResourcePref resources[] = {
 		{ "color4",     STRING,  &selbgcolor },
 		{ "color9",     STRING,  &selbordercolor },
 		{ "foreground", STRING,  &selfgcolor },
+		{ "color1",     STRING,  &tag1 },
+		{ "color2",     STRING,  &tag2 },
+		{ "color3",     STRING,  &tag3 },
+		{ "color4",     STRING,  &tag4 },
+		{ "color5",     STRING,  &tag5 },
+		{ "color6",     STRING,  &tag6 },
+		{ "color7",     STRING,  &tag7 },
+		{ "color9",     STRING,  &tag8 },
+		{ "color10",    STRING,  &tag9 },
 };
 
 static Key keys[] = {
