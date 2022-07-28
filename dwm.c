@@ -1004,10 +1004,10 @@ void
 focusstack(const Arg *arg)
 {
 	Client *c = NULL, *i;
-	Client *master = findmaster();
-
 	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen))
 		return;
+
+	Client *master = findmaster();
 	/* move only for stack area, jump from master not allowed*/
 	if (selmon->sel == master)
 		return;
@@ -1038,11 +1038,7 @@ focusstack(const Arg *arg)
 Client *
 findmaster(void) {
 	Client *c = NULL;
-	unsigned aim_tag = selmon->tagset[selmon->seltags];
-	for (c = selmon->clients; c; c = c->next) {
-		if ((c->tags & aim_tag) != 0)
-			break;
-	}
+	for (c = selmon->clients; c && !ISVISIBLE(c); c = c->next);
 	return c;
 }
 
