@@ -194,7 +194,7 @@ static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
 static Client *findmaster(void);
-static void writeltsymbol(Monitor *m, Client *c);
+static void writeltsymbol(Monitor *m);
 static void msaltfoucs(const Arg *arg);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
@@ -913,8 +913,12 @@ drawbar(Monitor *m)
 				urg & 1 << i);
 		x += w;
 	}
+	writeltsymbol(selmon);
 	w = blw = TEXTW(m->ltsymbol);
-	drw_setscheme(drw, scheme[SchemeNorm]);
+	//use the colour of the current view tag to print ltsymbol
+	//builtin func doc found on https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
+	drw_setscheme(drw, tag_scheme[31-__builtin_clz(m->tagset[m->seltags])]);
+
 	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
 
 	if ((w = m->ww - tw - x) > bh) {
@@ -1030,7 +1034,6 @@ focusstack(const Arg *arg)
 	if (c) {
 		focus(c);
 		restack(selmon);
-		writeltsymbol(selmon, c);
 	}
 }
 
@@ -1044,22 +1047,35 @@ findmaster(void) {
 
 /* over write layout symbol */
 void 
-writeltsymbol(Monitor *m, Client *move_to) {
-	unsigned int n = 0, i = 0;
+writeltsymbol(Monitor *m) {
+
+	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen))
+		return;
+
+	unsigned int n = 0, i;
 	Client *c = NULL;
 
 	for (c = m->clients; c; c = c->next)
 		if (ISVISIBLE(c))
 			n++;
-	for (c = m->clients; c && c != move_to; c = c->next)
+	i = n;
+	for (c = m->clients; c && c != m->sel; c = c->next)
 		if (ISVISIBLE(c))
-			i++;
-	/* if not float layout */
+			i--;
+
+	char _symbol[16];
+	strncpy(_symbol, m->lt[m->sellt]->symbol, sizeof m->ltsymbol);
+
+	// if not float layout
 	if(m->lt[m->sellt]->arrange){
-		if (i == 0)
-			snprintf(m->ltsymbol, sizeof m->ltsymbol,"🍖");
+		// 22 is purely a magic number to silent compiler, not too sure what to do.
+		if (i == n)
+			snprintf(m->ltsymbol, 22, "%s %s", _symbol, lt_stack[10]);
 		else
-			snprintf(m->ltsymbol, sizeof m->ltsymbol, "🍼 %d/%d", i, n - 1);
+			snprintf(m->ltsymbol, 22, "%s %s %s %s", _symbol,
+					lt_stack[i > 9 ? 0 : i],
+					lt_stack[11],
+					lt_stack[n > 10 ? 0 : n-1]);
 	}
 }
 
@@ -1072,8 +1088,6 @@ msaltfoucs(const Arg *arg)
 	Client *c = NULL;
 	Client *master = findmaster();
 	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen))
-		return;
-	if (!nexttiled(master->next))
 		return;
 
 	/* if currently in the master area, find the jump mark and jump back*/
@@ -1092,7 +1106,6 @@ msaltfoucs(const Arg *arg)
 	}
 	focus(c);
 	restack(selmon);
-	writeltsymbol(selmon, c);
 }
 
 Atom

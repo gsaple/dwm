@@ -54,6 +54,7 @@ static char *tag_colors[][2] = {
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static const char *lt_stack[] = {"", "", "", "", "", "", "", "", "", "", "", ""};
 static const char *occupy[] = {"", ""};
 
 static const Rule rules[] = {
@@ -75,10 +76,10 @@ static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen win
 #include "vanitygaps.c"
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ " ",       deck },  /* first entry is default */
-	{ "𧻓",       monocle },
+	{ " ",       deck },  /* first entry is default */
+	{ " ",       monocle },
 	{ " ",       bstack },
-	{ " ",       NULL },    /* no layout function means floating behavior */
+	{ " ",       NULL },    /* no layout function means floating behavior */
 	{ " ",       spiral },
 	{ " ",       tile },
 };
