@@ -1070,7 +1070,8 @@ writeltsymbol(Monitor *m) {
 	if(m->lt[m->sellt]->arrange){
 		// 22 is purely a magic number to silent compiler, not too sure what to do.
 		if (i == n)
-			snprintf(m->ltsymbol, 22, "%s %s", _symbol, lt_stack[10]);
+			snprintf(m->ltsymbol, 22, "%s %s %s", _symbol, lt_stack[10],
+					lt_stack[n > 9 ? 0 : n]);
 		else
 			snprintf(m->ltsymbol, 22, "%s %s %s %s", _symbol,
 					lt_stack[i > 9 ? 0 : i],
