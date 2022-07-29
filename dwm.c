@@ -1087,7 +1087,8 @@ msaltfocus(const Arg *arg)
 {
 	Client *c = NULL;
 	Client *master = findmaster();
-	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen))
+	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen)
+			 || (selmon->sel == master && !master->snext) )
 		return;
 
 	c = selmon->sel == master ? selmon->stack->snext : master;
