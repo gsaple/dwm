@@ -138,7 +138,6 @@ struct Monitor {
 	Window barwin;
 	const Layout *lt[2];
 	Pertag *pertag;
-	int ltcur; /* current layout */
 };
 
 typedef struct {
@@ -309,6 +308,7 @@ struct Pertag {
 	unsigned int sellts[LENGTH(tags) + 1]; /* selected layouts */
 	const Layout *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
 	int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
+	int ltcur[LENGTH(tags) + 1]; /* current layout index */
 };
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
@@ -701,7 +701,6 @@ createmon(void)
 	m->gappiv = gappiv;
 	m->gappoh = gappoh;
 	m->gappov = gappov;
-	m->ltcur = 0;
 	m->lt[0] = &layouts[0];
 	m->lt[1] = &layouts[1 % LENGTH(layouts)];
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
@@ -717,6 +716,7 @@ createmon(void)
 		m->pertag->sellts[i] = m->sellt;
 
 		m->pertag->showbars[i] = m->showbar;
+		m->pertag->ltcur[i] = 0;
 	}
 
 	return m;
@@ -1736,7 +1736,7 @@ layoutscroll(const Arg *arg)
 {
 	if (!arg || !arg->i)
 		return;
-	int switchto = selmon->ltcur + arg->i;
+	int switchto = selmon->pertag->ltcur[selmon->pertag->curtag] + arg -> i;
 	int l = LENGTH(layouts);
 
 	if (switchto == l)
@@ -1744,7 +1744,7 @@ layoutscroll(const Arg *arg)
 	else if(switchto < 0)
 		switchto = l - 1;
 
-	selmon->ltcur = switchto;
+        selmon->pertag->ltcur[selmon->pertag->curtag] = switchto;
 	Arg arg2 = {.v= &layouts[switchto] };
 	setlayout(&arg2);
 
