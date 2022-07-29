@@ -93,7 +93,7 @@ struct Client {
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
 	int bw, oldbw;
-	unsigned int tags, jumpmark;
+	unsigned int tags;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
 	Client *next;
 	Client *snext;
@@ -195,7 +195,7 @@ static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
 static Client *findmaster(void);
 static void writeltsymbol(Monitor *m);
-static void msaltfoucs(const Arg *arg);
+static void msaltfocus(const Arg *arg);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
 static long getstate(Window w);
@@ -1083,27 +1083,19 @@ writeltsymbol(Monitor *m) {
  * note that incnmaster function is disabled
  */
 void
-msaltfoucs(const Arg *arg)
+msaltfocus(const Arg *arg)
 {
 	Client *c = NULL;
 	Client *master = findmaster();
 	if (!selmon->sel || (selmon->sel->isfullscreen && lockfullscreen))
 		return;
 
-	/* if currently in the master area, find the jump mark and jump back*/
-	if (selmon->sel == master) {
-		for (c = master->next; c && !c->jumpmark; c = c->next);
-		if (!c) {
-			c = master->next;
-		} else {
-			/* found mark, set it back to false */
-			c->jumpmark = 0;
-		}
-	} else {
-	        /* remember jump mark, go to master client */
-		selmon->sel->jumpmark = 1;
-		c = master;
-	}
+	c = selmon->sel == master ? selmon->stack->snext : master;
+
+	// handle coming back from another tag
+	if (!ISVISIBLE(c))
+		for (c = master -> snext; c && !ISVISIBLE(c); c = c -> snext);
+
 	focus(c);
 	restack(selmon);
 }
