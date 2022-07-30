@@ -29,9 +29,6 @@ static char tag3[]                  = "#222222";
 static char tag4[]                  = "#222222";
 static char tag5[]                  = "#222222";
 static char tag6[]                  = "#222222";
-static char tag7[]                  = "#222222";
-static char tag8[]                  = "#222222";
-static char tag9[]                  = "#222222";
 
 static char *colors[][3] = {
        /*               fg           bg           border   */
@@ -47,13 +44,10 @@ static char *tag_colors[][2] = {
        { tag4,     normbgcolor},
        { tag5,     normbgcolor},
        { tag6,     normbgcolor},
-       { tag7,     normbgcolor},
-       { tag8,     normbgcolor},
-       { tag9,     normbgcolor},
 };
 
 /* tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static const char *tags[] = { "1", "2", "3", "4", "5", "6"};
 static const char *lt_stack[] = {"", "", "", "", "", "", "", "", "", "", " ", ""};
 static const char *occupy[] = {"", ""};
 
@@ -112,20 +106,17 @@ static const char *light_decrease[] = {"brightness.sh", "down", NULL};
  */
 ResourcePref resources[] = {
 		{ "background", STRING,  &normbgcolor },
-		{ "color6",     STRING,  &normbordercolor },
+		{ "color7",     STRING,  &normbordercolor },
 		{ "foreground", STRING,  &normfgcolor },
 		{ "color4",     STRING,  &selbgcolor },
-		{ "color9",     STRING,  &selbordercolor },
+		{ "color1",     STRING,  &selbordercolor },
 		{ "foreground", STRING,  &selfgcolor },
-		{ "color1",     STRING,  &tag1 },
-		{ "color2",     STRING,  &tag2 },
-		{ "color3",     STRING,  &tag3 },
-		{ "color4",     STRING,  &tag4 },
-		{ "color5",     STRING,  &tag5 },
-		{ "color6",     STRING,  &tag6 },
-		{ "color7",     STRING,  &tag7 },
-		{ "color9",     STRING,  &tag8 },
-		{ "color10",    STRING,  &tag9 },
+		{ "color9",     STRING,  &tag1 },
+		{ "color10",    STRING,  &tag2 },
+		{ "color11",    STRING,  &tag3 },
+		{ "color12",    STRING,  &tag4 },
+		{ "color13",    STRING,  &tag5 },
+		{ "color14",    STRING,  &tag6 },
 };
 
 static Key keys[] = {
