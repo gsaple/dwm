@@ -140,6 +140,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_Right,  setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY,                       XK_c,      killclient,     {0} },
+	{ MODKEY|ShiftMask,             XK_c,      killunsel,      {0} },
 	{ MODKEY,                       XK_space,  togglefloating, {0} },
 	{ MODKEY,                       XK_f,      togglefullscreen, {0} },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
