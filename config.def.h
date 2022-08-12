@@ -79,7 +79,7 @@ static const Layout layouts[] = {
 };
 
 /* key definitions */
-#define MODKEY Mod4Mask
+#define MODKEY Mod1Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
 	/* new tags will be toggled for the new, but not yet spawned client(s) */ \
@@ -127,7 +127,10 @@ static Key keys[] = {
         {0,              XF86XK_MonBrightnessUp,   spawn,          {.v = light_increase}},
 	{0,              XF86XK_MonBrightnessDown, spawn,          {.v = light_decrease}},
 	{ MODKEY,                       XK_t,      spawn,          SHCMD("toggle_bar.sh") },
-	{ MODKEY,                       XK_w,      spawn,          SHCMD("wallpaper.sh") },
+	{ MODKEY,                       XK_w,      spawn,          SHCMD("wallpaper.sh r") },
+	{ MODKEY,                       XK_s,      spawn,          SHCMD("wallpaper.sh s") },
+	{ MODKEY,                       XK_x,      spawn,          SHCMD("logout.sh") },
+	{ MODKEY,                       XK_i,      spawn,          SHCMD("firefox") },
 	{ MODKEY,                       XK_d,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
@@ -143,8 +146,8 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_c,      killunsel,      {0} },
 	{ MODKEY,                       XK_space,  togglefloating, {0} },
 	{ MODKEY,                       XK_f,      togglefullscreen, {0} },
-	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
-	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
+	{ MODKEY|ControlMask|ShiftMask, XK_0,      view,           {.ui = ~0 } },
+	{ MODKEY|ControlMask,           XK_0,      tag,            {.ui = ~0 } },
 	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
@@ -158,9 +161,9 @@ static Key keys[] = {
 	TAGKEYS(                        XK_4,                      3)
 	TAGKEYS(                        XK_5,                      4)
 	TAGKEYS(                        XK_6,                      5)
-	TAGKEYS(                        XK_7,                      6)
-	TAGKEYS(                        XK_8,                      7)
-	TAGKEYS(                        XK_9,                      8)
+	//TAGKEYS(                        XK_7,                      6)
+	//TAGKEYS(                        XK_8,                      7)
+	//TAGKEYS(                        XK_9,                      8)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
 	//{ MODKEY|Mod1Mask,              XK_u,      incrgaps,       {.i = +1 } },
 	//{ MODKEY|Mod1Mask|ShiftMask,    XK_u,      incrgaps,       {.i = -1 } },
