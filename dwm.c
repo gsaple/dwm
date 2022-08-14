@@ -185,6 +185,7 @@ static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
 static void drawbars(void);
+static void drawstatusbar(Monitor *m, int *tw);
 /*static void enternotify(XEvent *e);*/
 static void expose(XEvent *e);
 static void focus(Client *c);
@@ -783,9 +784,7 @@ drawbar(Monitor *m)
 
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
-		drw_setscheme(drw, scheme[SchemeNorm]);
-		tw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
-		drw_text(drw, m->ww - tw, 0, tw, bh, 0, stext, 0);
+		drawstatusbar(m, &tw);
 	}
 
 	for (c = m->clients; c; c = c->next) {
@@ -829,6 +828,37 @@ drawbars(void)
 		drawbar(m);
 }
 
+void
+drawstatusbar(Monitor *m, int *tw)
+{
+	int n = -1, x = m->ww - 2, w = 0, tagcol = 0;
+	const char *delim = ",";
+	const char *info[20]; // assuming maximum of 20 'components' in the status bar
+	unsigned int gap = 10; // leave 10 px gap between each component
+	char scopy[256];
+
+	strcpy(scopy, stext);
+	char *token = strtok(scopy, delim);
+	while (token) {
+		info[++n] = token;
+		token = strtok(NULL, delim);
+	}
+	while (n >= 0) {
+		// if not first component, draw gap
+		if (tagcol != 0) {
+			x -= gap;
+			drw_text(drw, x, 0, gap, bh, 0, "", 0);
+		}
+		w = TEXTW(info[n]);
+		*tw = *tw + (tagcol ? gap + w : w);
+		x -= w;
+		// have some symmetries betweeen the tag colours and status bar colours
+		drw_setscheme(drw, tag_scheme[tagcol++ % LENGTH(tag_colors)]);
+		drw_text(drw, x, 0, w, bh, lrpad / 2, info[n], 1);
+		n--;
+	}
+	*tw = *tw + 2; // add the 2px right padding at the right edge
+}
 
 void
 expose(XEvent *e)

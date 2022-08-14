@@ -36,6 +36,9 @@ static char *colors[][3] = {
        [SchemeSel]  = { selfgcolor,  selbgcolor,  selbordercolor  },
 };
 
+/* to also use tag colors as status bar colors, ensure stext is comma separated
+ * e.g. xsetroot -name "$info1,$info2,$info3"
+ */
 static char *tag_colors[][2] = {
        /* fg           bg  */
        { tag1,     normbgcolor},
