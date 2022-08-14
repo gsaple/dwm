@@ -986,18 +986,15 @@ writeltsymbol(Monitor *m) {
 	char _symbol[16];
 	strncpy(_symbol, m->lt[m->sellt]->symbol, sizeof m->ltsymbol);
 
-	// if not float layout
-	if(m->lt[m->sellt]->arrange){
-		// 22 is purely a magic number to silent compiler, not too sure what to do.
-		if (i == n)
-			snprintf(m->ltsymbol, 22, "%s %s %s", _symbol, lt_stack[10],
-					lt_stack[n > 9 ? 0 : n]);
-		else
-			snprintf(m->ltsymbol, 22, "%s %s %s %s", _symbol,
-					lt_stack[i > 9 ? 0 : i],
-					lt_stack[11],
-					lt_stack[n > 10 ? 0 : n-1]);
-	}
+	// 22 is purely a magic number to silent compiler, not too sure what to do.
+	if (i == n)
+		snprintf(m->ltsymbol, 22, "%s %s %s", _symbol, lt_stack[10],
+				lt_stack[n > 9 ? 0 : n]);
+	else
+		snprintf(m->ltsymbol, 22, "%s %s %s %s", _symbol,
+				lt_stack[i > 9 ? 0 : i],
+				lt_stack[11],
+				lt_stack[n > 10 ? 0 : n-1]);
 }
 
 /* to alternate focus between master client and stack client
