@@ -50,12 +50,12 @@ static char *tag_colors[][2] = {
 };
 
 static unsigned int counter = 0;
-static int colour_change = 0;
+static int colour_change = 1;
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6"};
 static const char *lt_stack[] = {"", "", "", "", "", "", "", "", "", "", " ", ""};
-static const char *occupy[] = {"", ""};
+static const char *occupy[] = {"", ""};
 
 static const Rule rules[] = {
 	/* xprop(1):
