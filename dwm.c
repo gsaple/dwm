@@ -832,7 +832,7 @@ drawbars(void)
 void
 drawstatusbar(Monitor *m, int *tw)
 {
-	int n = -1, x = m->ww - 2, w = 0, tagcol = 0;
+	int n = -1, x = m->ww - 2, w = 0, first = 0;
 	const char *delim = ",";
 	const char *info[20]; // assuming maximum of 20 'components' in the status bar
 	unsigned int gap = 10; // leave 10 px gap between each component
@@ -846,15 +846,20 @@ drawstatusbar(Monitor *m, int *tw)
 	}
 	while (n >= 0) {
 		// if not first component, draw gap
-		if (tagcol != 0) {
+		if (first != 0) {
 			x -= gap;
-			drw_text(drw, x, 0, gap, bh, 0, "", 0);
+			drw_rect(drw, x, 0, gap, bh, 1, 1);
 		}
 		w = TEXTW(info[n]);
-		*tw = *tw + (tagcol ? gap + w : w);
+		*tw = *tw + (first ? gap + w : w);
 		x -= w;
-		// have some symmetries betweeen the tag colours and status bar colours
-		drw_setscheme(drw, tag_scheme[tagcol++ % LENGTH(tag_colors)]);
+		if (colour_change) {
+			first = 1;
+			drw_setscheme(drw, tag_scheme[counter++ % LENGTH(tag_colors)]);
+		} else {
+		        drw_setscheme(drw, tag_scheme[first++ % LENGTH(tag_colors)]);
+		}
+
 		drw_text(drw, x, 0, w, bh, lrpad / 2, info[n], 1);
 		n--;
 	}

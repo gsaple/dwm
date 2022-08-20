@@ -49,6 +49,9 @@ static char *tag_colors[][2] = {
        { tag6,     normbgcolor},
 };
 
+static unsigned int counter = 0;
+static int colour_change = 0;
+
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6"};
 static const char *lt_stack[] = {"", "", "", "", "", "", "", "", "", "", " ", ""};
