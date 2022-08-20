@@ -797,7 +797,7 @@ drawbar(Monitor *m)
 	for (i = 0; i < LENGTH(tags); i++) {
 		_tag = occupy[m->tagset[m->seltags] & 1 << i ? 0 : 1];
 		w = TEXTW(_tag);
-		drw_setscheme(drw, tag_scheme[(i + counter) % LENGTH(tags)]);
+		drw_setscheme(drw, tag_scheme[i]);
 		drw_text(drw, x, 0, w, bh, lrpad / 2, _tag, urg & 1 << i);
 		if (occ & 1 << i)
 			drw_rect(drw, x + boxs, boxs, boxw, boxw,
@@ -809,8 +809,7 @@ drawbar(Monitor *m)
 	w = blw = TEXTW(m->ltsymbol);
 	//use the colour of the current view tag to print ltsymbol
 	//builtin func doc found on https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
-	drw_setscheme(drw, tag_scheme[(31-__builtin_clz(m->tagset[m->seltags]) + counter) % LENGTH(tags)]);
-	counter++;
+	drw_setscheme(drw, tag_scheme[31-__builtin_clz(m->tagset[m->seltags])]);
 
 	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
 
