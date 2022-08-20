@@ -250,6 +250,25 @@ drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled, int
 		XDrawRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w - 1, h - 1);
 }
 
+void
+drw_arrow(Drw *drw, int x1, int y1, int x2, int y2, int x3, int y3, int invert)
+{
+	if (!drw || !drw->scheme)
+		return;
+	int npoints = 3;
+	XPoint* points;
+	XSetForeground(drw->dpy, drw->gc, invert ? drw->scheme[ColBg].pixel : drw->scheme[ColFg].pixel);
+	points = malloc(sizeof(XPoint) * npoints);
+	points[0].x = x1;
+	points[0].y = y1;
+	points[1].x = x2;
+	points[1].y = y2;
+	points[2].x = x3;
+	points[2].y = y3;
+	XFillPolygon(drw->dpy, drw->drawable, drw->gc, points, npoints, Convex, CoordModeOrigin);
+	free(points);
+}
+
 int
 drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lpad, const char *text, int invert)
 {

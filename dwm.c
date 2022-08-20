@@ -833,9 +833,9 @@ void
 drawstatusbar(Monitor *m, int *tw)
 {
 	int n = -1, x = m->ww - 2, w = 0, first = 0;
+	int dxdy = bh / 2;
 	const char *delim = ",";
 	const char *info[20]; // assuming maximum of 20 'components' in the status bar
-	unsigned int gap = 10; // leave 10 px gap between each component
 	char scopy[256];
 
 	strcpy(scopy, stext);
@@ -845,13 +845,13 @@ drawstatusbar(Monitor *m, int *tw)
 		token = strtok(NULL, delim);
 	}
 	while (n >= 0) {
-		// if not first component, draw gap
+		// if not first component, draw two up and down right arrows
 		if (first != 0) {
-			x -= gap;
-			drw_rect(drw, x, 0, gap, bh, 1, 1);
+			drw_setscheme(drw, tag_scheme[(colour_change ? counter : first) % LENGTH(tag_colors)]);
+			drw_arrow(drw, x, 0, x + dxdy, 0, x, dxdy, 0);
+			drw_arrow(drw, x, dxdy, x + dxdy, bh, x, bh, 0);
 		}
 		w = TEXTW(info[n]);
-		*tw = *tw + (first ? gap + w : w);
 		x -= w;
 		if (colour_change) {
 			first = 1;
@@ -859,8 +859,15 @@ drawstatusbar(Monitor *m, int *tw)
 		} else {
 		        drw_setscheme(drw, tag_scheme[first++ % LENGTH(tag_colors)]);
 		}
-
 		drw_text(drw, x, 0, w, bh, lrpad / 2, info[n], 1);
+		// draw left arrows
+		drw_arrow(drw, x, 0, x, bh, x - dxdy, dxdy, 0);
+		x -= dxdy;
+		*tw = *tw + w + dxdy;
+		if (!n) {
+			drw_arrow(drw, x, 0, x + dxdy, 0, x, dxdy, 1);
+			drw_arrow(drw, x, dxdy, x + dxdy, bh, x, bh, 1);
+		}
 		n--;
 	}
 	*tw = *tw + 2; // add the 2px right padding at the right edge
