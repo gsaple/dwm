@@ -85,7 +85,7 @@ static const Layout layouts[] = {
 };
 
 /* key definitions */
-#define MODKEY Mod1Mask
+#define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
 	/* new tags will be toggled for the new, but not yet spawned client(s) */ \
@@ -137,6 +137,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_s,      spawn,          SHCMD("wallpaper.sh s") },
 	{ MODKEY,                       XK_x,      spawn,          SHCMD("logout.sh") },
 	{ MODKEY,                       XK_i,      spawn,          SHCMD("firefox") },
+	{ 0,                            XK_F2,     spawn,          SHCMD("simple-scan") },
 	{ MODKEY,                       XK_d,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
