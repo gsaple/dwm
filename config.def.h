@@ -99,7 +99,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
+static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-l", "20", NULL};
 static const char *termcmd[]  = { "st", NULL };
 static const char *volume_increase[] = {"volume.sh", "up", NULL};
 static const char *volume_decrease[] = {"volume.sh", "down", NULL};
@@ -113,10 +113,10 @@ static const char *light_decrease[] = {"brightness.sh", "down", NULL};
 ResourcePref resources[] = {
 		{ "background", STRING,  &normbgcolor },
 		{ "color7",     STRING,  &normbordercolor },
-		{ "foreground", STRING,  &normfgcolor },
+		{ "color7",     STRING,  &normfgcolor },
 		{ "color4",     STRING,  &selbgcolor },
 		{ "color1",     STRING,  &selbordercolor },
-		{ "foreground", STRING,  &selfgcolor },
+		{ "color15",    STRING,  &selfgcolor },
 		{ "color9",     STRING,  &tag1 },
 		{ "color10",    STRING,  &tag2 },
 		{ "color11",    STRING,  &tag3 },
