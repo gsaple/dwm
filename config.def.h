@@ -138,6 +138,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_x,      spawn,          SHCMD("logout.sh") },
 	{ MODKEY,                       XK_i,      spawn,          SHCMD("firefox") },
 	{ 0,                            XK_F2,     spawn,          SHCMD("simple-scan") },
+	{ 0,                            XK_Print,  spawn,          SHCMD("screen_shot.sh") },
 	{ MODKEY,                       XK_d,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
