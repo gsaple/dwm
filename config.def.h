@@ -49,7 +49,8 @@ static char *tag_colors[][2] = {
 };
 
 static unsigned int counter = 0;
-static int colour_change = 0;
+static unsigned int which_status = 0;
+static unsigned int colour_change = 0;
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6"};
@@ -133,7 +134,9 @@ static Key keys[] = {
 	{0,              XF86XK_MonBrightnessDown, spawn,          {.v = light_decrease}},
 	{ MODKEY,                       XK_t,      spawn,          SHCMD("toggle_bar.sh") },
 	{ MODKEY,                       XK_w,      spawn,          SHCMD("wallpaper.sh r") },
-	{ MODKEY,                       XK_s,      spawn,          SHCMD("wallpaper.sh s") },
+	{ MODKEY|ShiftMask,             XK_s,      spawn,          SHCMD("wallpaper.sh s") },
+	{ MODKEY,                       XK_s,      statusbarscroll, {0} },
+	{ MODKEY,                       XK_l,      togglelight,    {0} },
 	{ MODKEY,                       XK_x,      spawn,          SHCMD("logout.sh") },
 	{ MODKEY,                       XK_i,      spawn,          SHCMD("firefox") },
 	{ 0,                            XK_F2,     spawn,          SHCMD("simple-scan") },

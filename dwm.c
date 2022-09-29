@@ -188,6 +188,8 @@ static void drawbars(void);
 static void statusbar_powerline(Monitor *m, int *tw);
 static void statusbar_roundcorner(Monitor *m, int *tw);
 static void statusbar_xmonad(Monitor *m, int *tw);
+static void statusbarscroll(const Arg *arg);
+static void togglelight(const Arg *arg);
 /*static void enternotify(XEvent *e);*/
 static void expose(XEvent *e);
 static void focus(Client *c);
@@ -773,6 +775,17 @@ dirtomon(int dir)
 }
 
 void
+statusbarscroll(const Arg *arg)
+{
+	which_status++;
+}
+
+void togglelight(const Arg *arg)
+{
+	colour_change ^= 1;
+}
+
+void
 drawbar(Monitor *m)
 {
 	int x, w, tw = 0;
@@ -781,6 +794,10 @@ drawbar(Monitor *m)
 	unsigned int i, occ = 0, urg = 0;
 	const char *_tag;
 	Client *c;
+	typedef void (*drw_funcs)(Monitor *, int *);
+        drw_funcs statusbar[3] =
+		//{statusbar_powerline, statusbar_roundcorner, statusbar_xmonad};
+		{statusbar_roundcorner, statusbar_powerline, statusbar_xmonad};
 
 	if (!m->showbar)
 		return;
@@ -789,7 +806,8 @@ drawbar(Monitor *m)
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		//statusbar_powerline(m, &tw);
                 //statusbar_roundcorner(m, &tw);
-                statusbar_xmonad(m, &tw);
+                //statusbar_xmonad(m, &tw);
+		statusbar[which_status % LENGTH(statusbar)](m, &tw);
 	}
 
 	for (c = m->clients; c; c = c->next) {
@@ -836,7 +854,7 @@ drawbars(void)
 void
 statusbar_powerline(Monitor *m, int *tw)
 {
-	int n = -1, x = m->ww - 2, w = 0, first = 0;
+	int n = -1, x = m->ww, w = 0, first = 0;
 	int dxdy = bh / 2;
 	const char *delim = ",";
 	const char *info[20]; // assuming maximum of 20 'components' in the status bar
@@ -874,7 +892,7 @@ statusbar_powerline(Monitor *m, int *tw)
 		}
 		n--;
 	}
-	*tw = *tw + 2; // add the 2px right padding at the right edge
+	//*tw = *tw + 2; // add the 2px right padding at the right edge
 }
 
 void
@@ -902,7 +920,7 @@ statusbar_roundcorner(Monitor *m, int *tw)
 		}
 
 		if (colour_change) {
-			first = 1;
+			//first = 1;
 			drw_setscheme(drw, tag_scheme[counter++ % LENGTH(tag_colors)]);
 		} else {
 		        drw_setscheme(drw, tag_scheme[first % LENGTH(tag_colors)]);
@@ -955,7 +973,7 @@ statusbar_xmonad(Monitor *m, int *tw)
 		}
 
 		if (colour_change) {
-			first = 1;
+			//first = 1;
 			drw_setscheme(drw, tag_scheme[counter++ % LENGTH(tag_colors)]);
 		} else {
 		        drw_setscheme(drw, tag_scheme[first % LENGTH(tag_colors)]);
@@ -970,7 +988,7 @@ statusbar_xmonad(Monitor *m, int *tw)
 		n--;
 	}
         drw->fonts->h = bh - 2;
-	*tw = *tw + 5; // add the 2px right padding at the right edge
+	*tw = *tw + 5; // add the 5px right padding at the right edge
 }
 
 void
