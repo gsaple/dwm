@@ -824,18 +824,8 @@ drawbar(Monitor *m)
 			urg |= c->tags;
 	}
 	x = 0;
-	int turn = 0;
 	for (i = 0; i < LENGTH(tags); i++) {
-		if (colour_change) {
-			if (i == counter % LENGTH(tags)) {
-				_tag = occupy[0];
-				turn = i;
-			} else {
-				_tag = occupy[1];
-			}
-		} else {
-			_tag = occupy[m->tagset[m->seltags] & 1 << i ? 0 : 1];
-		}
+		_tag = occupy[m->tagset[m->seltags] & 1 << i ? 0 : 1];
 		w = TEXTW(_tag);
 		drw_setscheme(drw, tag_scheme[i]);
 		drw_text(drw, x, 0, w, bh, lrpad / 2, _tag, urg & 1 << i);
@@ -849,11 +839,7 @@ drawbar(Monitor *m)
 	w = blw = TEXTW(m->ltsymbol);
 	//use the colour of the current view tag to print ltsymbol
 	//builtin func doc found on https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
-	if (colour_change) {
-		drw_setscheme(drw, tag_scheme[turn]);
-	} else {
-		drw_setscheme(drw, tag_scheme[31-__builtin_clz(m->tagset[m->seltags])]);
-	}
+	drw_setscheme(drw, tag_scheme[31-__builtin_clz(m->tagset[m->seltags])]);
 
 	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
 
