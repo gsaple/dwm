@@ -113,6 +113,8 @@ typedef struct {
 	void (*arrange)(Monitor *);
 } Layout;
 
+typedef void (*drw_funcs)(int, int *, int, int, const char **);
+
 typedef struct Pertag Pertag;
 struct Monitor {
 	char ltsymbol[16];
@@ -185,9 +187,9 @@ static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
 static void drawbars(void);
-static void statusbar_powerline(Monitor *m, int *tw);
-static void statusbar_roundcorner(Monitor *m, int *tw);
-static void statusbar_xmonad(Monitor *m, int *tw);
+static void statusbar_powerline(int x, int *tw, int n, int index, const char **info);
+static void statusbar_roundcorner(int x, int *tw, int n, int index, const char **info);
+static void statusbar_xmonad(int x, int *tw, int n, int index, const char **info);
 static void statusbarscroll(const Arg *arg);
 static void togglelight(const Arg *arg);
 /*static void enternotify(XEvent *e);*/
@@ -794,20 +796,26 @@ drawbar(Monitor *m)
 	unsigned int i, occ = 0, urg = 0;
 	const char *_tag;
 	Client *c;
-	typedef void (*drw_funcs)(Monitor *, int *);
         drw_funcs statusbar[3] =
-		//{statusbar_powerline, statusbar_roundcorner, statusbar_xmonad};
 		{statusbar_roundcorner, statusbar_powerline, statusbar_xmonad};
+
+	int n = -1, index = 0;
+	const char *delim = ",";
+	const char *info[20]; // assuming maximum of 20 'components' in the status bar
+	char scopy[256];
 
 	if (!m->showbar)
 		return;
 
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
-		//statusbar_powerline(m, &tw);
-                //statusbar_roundcorner(m, &tw);
-                //statusbar_xmonad(m, &tw);
-		statusbar[which_status % LENGTH(statusbar)](m, &tw);
+		strcpy(scopy, stext);
+		char *token = strtok(scopy, delim);
+		while (token) {
+			info[++n] = token;
+			token = strtok(NULL, delim);
+		}
+		statusbar[which_status % LENGTH(statusbar)](m->ww, &tw, n, index, info);
 	}
 
 	for (c = m->clients; c; c = c->next) {
@@ -852,34 +860,23 @@ drawbars(void)
 }
 
 void
-statusbar_powerline(Monitor *m, int *tw)
+statusbar_powerline(int x, int *tw, int n, int index, const char **info)
 {
-	int n = -1, x = m->ww, w = 0, first = 0;
-	int dxdy = bh / 2;
-	const char *delim = ",";
-	const char *info[20]; // assuming maximum of 20 'components' in the status bar
-	char scopy[256];
-
-	strcpy(scopy, stext);
-	char *token = strtok(scopy, delim);
-	while (token) {
-		info[++n] = token;
-		token = strtok(NULL, delim);
-	}
+	int dxdy = bh / 2, w;
 	while (n >= 0) {
-		// if not first component, draw two up and down right arrows
-		if (first != 0) {
-			drw_setscheme(drw, tag_scheme[(colour_change ? counter : first) % LENGTH(tag_colors)]);
+		if (index != 0) {
+		        //draw two up and down right arrows
+			drw_setscheme(drw, tag_scheme[(colour_change ? counter : index) % LENGTH(tag_colors)]);
 			drw_arrow(drw, x, 0, x + dxdy, 0, x, dxdy, 0);
 			drw_arrow(drw, x, dxdy, x + dxdy, bh, x, bh, 0);
 		}
 		w = TEXTW(info[n]);
 		x -= w;
 		if (colour_change) {
-			first = 1;
+			index = 1;
 			drw_setscheme(drw, tag_scheme[counter++ % LENGTH(tag_colors)]);
 		} else {
-		        drw_setscheme(drw, tag_scheme[first++ % LENGTH(tag_colors)]);
+		        drw_setscheme(drw, tag_scheme[index++ % LENGTH(tag_colors)]);
 		}
 		drw_text(drw, x, 0, w, bh, lrpad / 2, info[n], 1);
 		// draw left arrows
@@ -892,103 +889,70 @@ statusbar_powerline(Monitor *m, int *tw)
 		}
 		n--;
 	}
-	//*tw = *tw + 2; // add the 2px right padding at the right edge
 }
 
 void
-statusbar_roundcorner(Monitor *m, int *tw)
+statusbar_roundcorner(int x, int *tw, int n, int index, const char **info)
 {
-	int n = -1, x = m->ww, first = 0, w = 0;
-	int wl, wr;
-	const char *delim = ",";
-	const char *info[20]; // assuming maximum of 20 'components' in the status bar
-	unsigned int gap = 10; // leave 10 px gap between each component
-	char scopy[256];
-
-	strcpy(scopy, stext);
-	char *token = strtok(scopy, delim);
-	while (token) {
-		info[++n] = token;
-		token = strtok(NULL, delim);
-	}
+	int w, wt;
+	int wc = TEXTW("") - lrpad;
+	int rightmost = x;
         bh = drw->fonts->h;
-        //drw->fonts->h = bh;
 	while (n >= 0) {
-		if (first != 0) {
-			x -= gap;
-			drw_rect(drw, x, 0, gap, bh, 1, 1);
+		if (index != 0) {
+			x -= r_gap;
+			drw_rect(drw, x, 0, r_gap, bh, 1, 1);
 		}
-
 		if (colour_change) {
-			//first = 1;
 			drw_setscheme(drw, tag_scheme[counter++ % LENGTH(tag_colors)]);
 		} else {
-		        drw_setscheme(drw, tag_scheme[first % LENGTH(tag_colors)]);
+		        drw_setscheme(drw, tag_scheme[index % LENGTH(tag_colors)]);
 		}
-
-		wr = TEXTW("") - lrpad;
-		x -= wr;
-		drw_text(drw, x, 0, wr, bh, 0, "", 0);
+		x -= wc;
+		drw_text(drw, x, 0, wc, bh, 0, "", 0);
 		w = TEXTW(info[n]) - lrpad;
-		x -= (w - 2 + wr);
-		drw_text(drw, x, 0, wr, bh, 0, "", 0);
-		//x -= w;
-		drw_text(drw, x + wr - 1, 0, w, bh, 0, info[n], 1);
-		//wl = TEXTW("") - lrpad;
-		//x -= wl;
-		int wt = 2 * wr + w -2;
-		*tw = *tw + (first ? gap + wt : wt);
-		//*tw = *tw + (first ? gap + w : w);
-		first++;
+		x -= (w - 2 + wc);
+		drw_text(drw, x, 0, wc, bh, 0, "", 0);
+		drw_text(drw, x + wc - 1, 0, w, bh, 0, info[n], 1);
+		wt = 2 * wc + w -2;
+		*tw = *tw + (index ? r_gap + wt : wt);
+		index++;
 		n--;
 	}
-        //drw->fonts->h = bh - 2;
         bh = drw->fonts->h + 2;
-	drw_rect(drw, m->ww - *tw, bh - 2, *tw, 2, 1, 1);
-	//*tw = *tw + 2; // add the 2px right padding at the right edge
+	drw_rect(drw, rightmost - *tw, bh - 2, *tw, 2, 1, 1);
 }
 
+/* inspired by the status bar of DistroTube's Xmonad build */
 void
-statusbar_xmonad(Monitor *m, int *tw)
+statusbar_xmonad(int x, int *tw, int n, int index, const char **info)
 {
-	int n = -1, x = m->ww - 5, first = 0, w = 0;
-	const char *delim = ",";
-	const char *info[20]; // assuming maximum of 20 'components' in the status bar
-	unsigned int gap = 15; // leave 15 px gap between each component
-	char scopy[256];
-
-	drw_rect(drw, x, 0, 5, bh, 1, 1);
-
-	strcpy(scopy, stext);
-	char *token = strtok(scopy, delim);
-	while (token) {
-		info[++n] = token;
-		token = strtok(NULL, delim);
-	}
+	int w;
+	int offset = drw->fonts->h / 10;
+	x -= right_padding;
+	drw_rect(drw, x, 0, right_padding, bh, 1, 1);
         drw->fonts->h = bh;
 	while (n >= 0) {
-		if (first != 0) {
-			x -= gap;
-			drw_rect(drw, x, 0, gap, bh, 1, 1);
+		if (index != 0) {
+			x -= m_gap;
+			drw_rect(drw, x, 0, m_gap, bh, 1, 1);
 		}
 
 		if (colour_change) {
-			//first = 1;
 			drw_setscheme(drw, tag_scheme[counter++ % LENGTH(tag_colors)]);
 		} else {
-		        drw_setscheme(drw, tag_scheme[first % LENGTH(tag_colors)]);
+		        drw_setscheme(drw, tag_scheme[index % LENGTH(tag_colors)]);
 		}
 		w = TEXTW(info[n]) - lrpad;
 		x -= w;
-		int offset = drw->fonts->h / 10;
 		drw_text(drw, x, 0, w, bh, 0, info[n], 0);
 		drw_rect(drw, x, bh - offset, w, offset, 1, 0);
-		*tw = *tw + (first ? gap + w : w);
-		first++;
+		*tw = *tw + (index ? m_gap + w : w);
+		index++;
 		n--;
 	}
         drw->fonts->h = bh - 2;
-	*tw = *tw + 5; // add the 5px right padding at the right edge
+	*tw = *tw + right_padding; // add back right padding
 }
 
 void

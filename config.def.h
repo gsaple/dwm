@@ -51,6 +51,9 @@ static char *tag_colors[][2] = {
 static unsigned int counter = 0;
 static unsigned int which_status = 0;
 static unsigned int colour_change = 0;
+static unsigned int r_gap = 10; // pixels between each components for rounded corner status bar
+static unsigned int m_gap = 15; // pixels between each components for xmonad-like status bar
+static unsigned int right_padding = 5; // used only for xmonad-like status bar
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6"};
