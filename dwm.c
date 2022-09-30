@@ -780,6 +780,7 @@ void
 statusbarscroll(const Arg *arg)
 {
 	which_status++;
+	drawbar(selmon);
 }
 
 void togglelight(const Arg *arg)
@@ -884,6 +885,7 @@ statusbar_powerline(int x, int *tw, int n, int index, const char **info)
 		x -= dxdy;
 		*tw = *tw + w + dxdy;
 		if (!n) {
+			drw_setscheme(drw, scheme[SchemeNorm]);
 			drw_arrow(drw, x, 0, x + dxdy, 0, x, dxdy, 1);
 			drw_arrow(drw, x, dxdy, x + dxdy, bh, x, bh, 1);
 		}
