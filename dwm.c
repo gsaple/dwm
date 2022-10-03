@@ -786,6 +786,7 @@ statusbarscroll(const Arg *arg)
 void togglelight(const Arg *arg)
 {
 	colour_change ^= 1;
+	drawbar(selmon);
 }
 
 void
