@@ -900,7 +900,6 @@ statusbar_roundcorner(int x, int *tw, int n, int index, const char **info)
 	int w, wt;
 	int wc = TEXTW("") - lrpad;
 	int rightmost = x;
-        bh = drw->fonts->h;
 	while (n >= 0) {
 		if (index != 0) {
 			x -= r_gap;
@@ -922,8 +921,8 @@ statusbar_roundcorner(int x, int *tw, int n, int index, const char **info)
 		index++;
 		n--;
 	}
-        bh = drw->fonts->h + 2;
-	drw_rect(drw, rightmost - *tw, bh - 2, *tw, 2, 1, 1);
+	drw_rect(drw, rightmost - *tw, 0, *tw, 1, 1, 1);
+	drw_rect(drw, rightmost - *tw, bh - 1, *tw, 1, 1, 1);
 }
 
 /* inspired by the status bar of DistroTube's Xmonad build */
