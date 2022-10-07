@@ -101,8 +101,7 @@ static const Layout layouts[] = {
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
 /* commands */
-static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-l", "20", NULL};
+static const char *dmenucmd[] = { "dmenu_run", "-l", "20", NULL};
 static const char *termcmd[]  = { "st", NULL };
 static const char *volume_increase[] = {"volume.sh", "up", NULL};
 static const char *volume_decrease[] = {"volume.sh", "down", NULL};
@@ -128,7 +127,7 @@ ResourcePref resources[] = {
 		{ "color14",    STRING,  &tag6 },
 };
 
-static Key keys[] = {
+static const Key keys[] = {
 	/* modifier                     key        function        argument */
 	{0,              XF86XK_AudioMute,         spawn,          {.v = volume_mute}},
         {0,              XF86XK_AudioRaiseVolume,  spawn,          {.v = volume_increase}},
@@ -197,7 +196,7 @@ static Key keys[] = {
 
 /* button definitions */
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
-static Button buttons[] = {
+static const Button buttons[] = {
 	/* click                event mask      button          function        argument */
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
 	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
