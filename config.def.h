@@ -52,6 +52,9 @@ static unsigned int counter = 0;
 static unsigned int which_status = 0;
 static unsigned int colour_change = 0;
 static unsigned int r_gap = 10; // pixels between each components for rounded corner status bar
+static unsigned int jagged_pixel = 1; // for rounded corners
+static unsigned int underline_offset = 2; // for xmonad-like
+static unsigned int underline_height = 2; // for xmonad-like
 static unsigned int m_gap = 15; // pixels between each components for xmonad-like status bar
 static unsigned int right_padding = 5; // used only for xmonad-like status bar
 

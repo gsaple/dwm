@@ -921,8 +921,8 @@ statusbar_roundcorner(int x, int *tw, int n, int index, const char **info)
 		index++;
 		n--;
 	}
-	drw_rect(drw, rightmost - *tw, 0, *tw, 1, 1, 1);
-	drw_rect(drw, rightmost - *tw, bh - 1, *tw, 1, 1, 1);
+	drw_rect(drw, rightmost - *tw, 0, *tw, jagged_pixel, 1, 1);
+	drw_rect(drw, rightmost - *tw, bh - jagged_pixel, *tw, jagged_pixel, 1, 1);
 }
 
 /* inspired by the status bar of DistroTube's Xmonad build */
@@ -930,7 +930,6 @@ void
 statusbar_xmonad(int x, int *tw, int n, int index, const char **info)
 {
 	int w;
-	int offset = drw->fonts->h / 10;
 	x -= right_padding;
 	drw_rect(drw, x, 0, right_padding, bh, 1, 1);
         drw->fonts->h = bh;
@@ -948,7 +947,7 @@ statusbar_xmonad(int x, int *tw, int n, int index, const char **info)
 		w = TEXTW(info[n]) - lrpad;
 		x -= w;
 		drw_text(drw, x, 0, w, bh, 0, info[n], 0);
-		drw_rect(drw, x, bh - offset, w, offset, 1, 0);
+		drw_rect(drw, x, bh - underline_offset, w, underline_height, 1, 0);
 		*tw = *tw + (index ? m_gap + w : w);
 		index++;
 		n--;
