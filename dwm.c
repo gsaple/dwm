@@ -932,7 +932,6 @@ statusbar_xmonad(int x, int *tw, int n, int index, const char **info)
 	int w;
 	x -= right_padding;
 	drw_rect(drw, x, 0, right_padding, bh, 1, 1);
-        drw->fonts->h = bh;
 	while (n >= 0) {
 		if (index != 0) {
 			x -= m_gap;
@@ -952,7 +951,6 @@ statusbar_xmonad(int x, int *tw, int n, int index, const char **info)
 		index++;
 		n--;
 	}
-        drw->fonts->h = bh - 2;
 	*tw = *tw + right_padding; // add back right padding
 }
 
@@ -1825,7 +1823,7 @@ setup(void)
 	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
 		die("no fonts could be loaded.");
 	lrpad = drw->fonts->h;
-	bh = drw->fonts->h + 2;
+	bh = drw->fonts->h + 4;
 	updategeom();
 	/* init atoms */
 	utf8string = XInternAtom(dpy, "UTF8_STRING", False);
