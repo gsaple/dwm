@@ -111,12 +111,10 @@ static const char *volume_decrease[] = {"volume.sh", "down", NULL};
 static const char *volume_mute[] = {"volume.sh", "mute", NULL};
 static const char *light_increase[] = {"brightness.sh", "up", NULL};
 static const char *light_decrease[] = {"brightness.sh", "down", NULL};
-static const char *webcmd[] = {"firefox", NULL};
-static const char *filecmd[] = {"st", "-e", "fish", "-c", "f", NULL};
 
 static const Click clickables[] = {
-        {"📁", filecmd},
-	{"🌍", webcmd},
+        {"📁", (const char*[]) {"st", "-e", "fish", "-c", "f", NULL}},
+	{"🌍", (const char*[]) {"firefox", NULL}},
 };
 
 /*
@@ -150,8 +148,8 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_s,      statusbarscroll, {0} },
 	{ MODKEY,                       XK_l,      togglelight,    {0} },
 	{ MODKEY,                       XK_x,      spawn,          SHCMD("logout.sh") },
-	{ MODKEY,                       XK_i,      spawn,          SHCMD("firefox") },
-	{ 0,                            XK_F2,     spawn,          SHCMD("simple-scan") },
+	{ MODKEY,                       XK_i,      spawn,          {.v = (const char*[]) {"firefox", NULL}} },
+	{ 0,                            XK_F2,     spawn,          {.v = (const char*[]) {"simple-scan", NULL}} },
 	{ 0,                            XK_Print,  spawn,          SHCMD("screen_shot.sh") },
 	{ MODKEY,                       XK_d,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
