@@ -66,7 +66,7 @@ enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
-enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkClientWin,
+enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkClientWin, ClkIcon,
        ClkRootWin, ClkLast }; /* clicks */
 
 typedef union {
@@ -112,6 +112,11 @@ typedef struct {
 	const char *symbol;
 	void (*arrange)(Monitor *);
 } Layout;
+
+typedef struct {
+	const char *icon;
+	const char **command;
+} Click;
 
 typedef void (*drw_funcs)(int, int *, int, int, const char **);
 
@@ -305,6 +310,8 @@ static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
+static unsigned int click_range = 0;
+static unsigned int status_range;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -477,7 +484,7 @@ attachstack(Client *c)
 void
 buttonpress(XEvent *e)
 {
-	unsigned int i, x, click;
+	unsigned int i, x, click, w;
 	Arg arg = {0};
 	Client *c;
 	Monitor *m;
@@ -499,10 +506,27 @@ buttonpress(XEvent *e)
 		if (i < LENGTH(tags)) {
 			click = ClkTagBar;
 			arg.ui = 1 << i;
-		} else if (ev->x < x + TEXTW(selmon->ltsymbol))
+		} else if (ev->x < x + TEXTW(selmon->ltsymbol)) {
 			click = ClkLtSymbol;
-		else
+		} else if (ev->x > selmon->ww - status_range) {
 			click = ClkStatusText;
+		} else {
+			x += TEXTW(selmon->ltsymbol);
+			w = selmon->ww - status_range - x;
+			if (w >= click_range) {
+				i = 0;
+				x += (w - click_range) / 2;
+				if (ev->x >= x) {
+					do
+						x += TEXTW(clickables[i].icon);
+                                        while (ev->x >= x && ++i < LENGTH(clickables));
+					if (i < LENGTH(clickables)) {
+						click = ClkIcon;
+						arg.v = clickables[i].command;
+					}
+				}
+			}
+		}
 	} else if ((c = wintoclient(ev->window))) {
 		if (focusonwheel || (ev->button != Button4 && ev->button != Button5))
 			focus(c);
@@ -512,7 +536,7 @@ buttonpress(XEvent *e)
 	for (i = 0; i < LENGTH(buttons); i++)
 		if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
 		&& CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
-			buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
+			buttons[i].func((click == ClkTagBar ||click == ClkIcon) && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
 }
 
 void
@@ -819,6 +843,7 @@ drawbar(Monitor *m)
 		}
 		statusbar[which_status % LENGTH(statusbar)](m->ww, &tw, n, index, info);
 	}
+	status_range = tw;
 
 	for (c = m->clients; c; c = c->next) {
 		occ |= c->tags;
@@ -848,6 +873,14 @@ drawbar(Monitor *m)
 	if ((w = m->ww - tw - x) > bh) {
 			drw_setscheme(drw, scheme[SchemeNorm]);
 			drw_rect(drw, x, 0, w, bh, 1, 1);
+			if (w >= click_range) {
+				x += (w - click_range) / 2;
+				for (i = 0; i < LENGTH(clickables); i++) {
+		                        w = TEXTW(clickables[i].icon);
+		                        drw_text(drw, x, 0, w, bh, lrpad / 2, clickables[i].icon, 0);
+					x += w;
+				}
+			}
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
 }
@@ -1851,6 +1884,8 @@ setup(void)
 	tag_scheme = ecalloc(LENGTH(tag_colors), sizeof(Clr *));
 	for (i = 0; i < LENGTH(tag_colors); i++)
 		tag_scheme[i] = drw_scm_create(drw, tag_colors[i], 2);
+	for (i = 0; i < LENGTH(clickables); i++)
+		click_range += TEXTW(clickables[i].icon);
 
 	/* init bars */
 	updatebars();

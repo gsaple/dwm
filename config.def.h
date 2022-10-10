@@ -111,6 +111,13 @@ static const char *volume_decrease[] = {"volume.sh", "down", NULL};
 static const char *volume_mute[] = {"volume.sh", "mute", NULL};
 static const char *light_increase[] = {"brightness.sh", "up", NULL};
 static const char *light_decrease[] = {"brightness.sh", "down", NULL};
+static const char *webcmd[] = {"firefox", NULL};
+static const char *filecmd[] = {"st", "-e", "fish", "-c", "f", NULL};
+
+static const Click clickables[] = {
+        {"📁", filecmd},
+	{"🌍", webcmd},
+};
 
 /*
  * Xresources preferences to load at startup
@@ -207,4 +214,5 @@ static const Button buttons[] = {
 	{ ClkTagBar,            0,              Button3,        toggleview,     {0} },
 	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
 	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
+	{ ClkIcon,              0,              Button1,        spawn,          {0} },
 };
