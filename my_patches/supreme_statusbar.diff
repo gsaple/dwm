@@ -89,7 +89,7 @@ index 6471431..5af0e12 100644
  
  /* Map functions */
 diff --git a/dwm.c b/dwm.c
-index e5efb6a..99f2a61 100644
+index e5efb6a..8cc1d95 100644
 --- a/dwm.c
 +++ b/dwm.c
 @@ -111,6 +111,8 @@ typedef struct {
@@ -113,7 +113,7 @@ index e5efb6a..99f2a61 100644
  static void drawbars(void);
  static void enternotify(XEvent *e);
  static void expose(XEvent *e);
-@@ -264,10 +271,13 @@ static Atom wmatom[WMLast], netatom[NetLast];
+@@ -264,10 +271,14 @@ static Atom wmatom[WMLast], netatom[NetLast];
  static int running = 1;
  static Cur *cursor[CurLast];
  static Clr **scheme;
@@ -124,10 +124,20 @@ index e5efb6a..99f2a61 100644
  static Window root, wmcheckwin;
 +static unsigned int counter = 0;
 +static unsigned int which_sb = 0;
++static unsigned int status_range;
  
  /* configuration, allows nested code to access above variables */
  #include "config.h"
-@@ -490,6 +500,9 @@ cleanup(void)
+@@ -442,7 +453,7 @@ buttonpress(XEvent *e)
+ 			arg.ui = 1 << i;
+ 		} else if (ev->x < x + TEXTW(selmon->ltsymbol))
+ 			click = ClkLtSymbol;
+-		else if (ev->x > selmon->ww - (int)TEXTW(stext))
++		else if (ev->x > selmon->ww - status_range)
+ 			click = ClkStatusText;
+ 		else
+ 			click = ClkWinTitle;
+@@ -490,6 +501,9 @@ cleanup(void)
  	for (i = 0; i < LENGTH(colors); i++)
  		free(scheme[i]);
  	free(scheme);
@@ -137,7 +147,7 @@ index e5efb6a..99f2a61 100644
  	XDestroyWindow(dpy, wmcheckwin);
  	drw_free(drw);
  	XSync(dpy, False);
-@@ -704,15 +717,25 @@ drawbar(Monitor *m)
+@@ -704,16 +718,27 @@ drawbar(Monitor *m)
  	int boxw = drw->fonts->h / 6 + 2;
  	unsigned int i, occ = 0, urg = 0;
  	Client *c;
@@ -164,9 +174,11 @@ index e5efb6a..99f2a61 100644
 +		}
 +		statusbar[which_sb % LENGTH(statusbar)](m->ww, &tw, n, index, info);
  	}
++	status_range = tw;
  
  	for (c = m->clients; c; c = c->next) {
-@@ -737,7 +760,7 @@ drawbar(Monitor *m)
+ 		occ |= c->tags;
+@@ -737,7 +762,7 @@ drawbar(Monitor *m)
  
  	if ((w = m->ww - tw - x) > bh) {
  		if (m->sel) {
@@ -175,7 +187,7 @@ index e5efb6a..99f2a61 100644
  			drw_text(drw, x, 0, w, bh, lrpad / 2, m->sel->name, 0);
  			if (m->sel->isfloating)
  				drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
-@@ -749,6 +772,116 @@ drawbar(Monitor *m)
+@@ -749,6 +774,116 @@ drawbar(Monitor *m)
  	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
  }
  
@@ -292,7 +304,7 @@ index e5efb6a..99f2a61 100644
  void
  drawbars(void)
  {
-@@ -1546,7 +1679,7 @@ setup(void)
+@@ -1546,7 +1681,7 @@ setup(void)
  	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
  		die("no fonts could be loaded.");
  	lrpad = drw->fonts->h;
@@ -301,7 +313,7 @@ index e5efb6a..99f2a61 100644
  	updategeom();
  	/* init atoms */
  	utf8string = XInternAtom(dpy, "UTF8_STRING", False);
-@@ -1571,6 +1704,9 @@ setup(void)
+@@ -1571,6 +1706,9 @@ setup(void)
  	scheme = ecalloc(LENGTH(colors), sizeof(Clr *));
  	for (i = 0; i < LENGTH(colors); i++)
  		scheme[i] = drw_scm_create(drw, colors[i], 3);
