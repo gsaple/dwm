@@ -1,0 +1,137 @@
+diff --git a/config.def.h b/config.def.h
+index 3850ee6..75c0dfa 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -58,6 +58,10 @@ static const Layout layouts[] = {
+ /* commands */
+ static const char *dmenucmd[] = { "dmenu_run", "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
+ static const char *termcmd[]  = { "st", NULL };
++static const Click clickables[] = {
++	{"Dmenu", dmenucmd},
++	{"Term", termcmd},
++};
+ 
+ static const Key keys[] = {
+ 	/* modifier                     key        function        argument */
+@@ -110,5 +114,6 @@ static const Button buttons[] = {
+ 	{ ClkTagBar,            0,              Button3,        toggleview,     {0} },
+ 	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
+ 	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
++	{ ClkIcon,              0,              Button1,        spawn,          {0} },
+ };
+ 
+diff --git a/dwm.c b/dwm.c
+index b879e42..90e00c1 100644
+--- a/dwm.c
++++ b/dwm.c
+@@ -64,7 +64,7 @@ enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
+        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
+        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
+ enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
+-enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkClientWin,
++enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkClientWin, ClkIcon,
+        ClkRootWin, ClkLast }; /* clicks */
+ 
+ typedef union {
+@@ -111,6 +111,11 @@ typedef struct {
+ 	void (*arrange)(Monitor *);
+ } Layout;
+ 
++typedef struct {
++	const char *icon;
++	const char **command;
++} Click;
++
+ struct Monitor {
+ 	char ltsymbol[16];
+ 	float mfact;
+@@ -268,6 +273,8 @@ static Display *dpy;
+ static Drw *drw;
+ static Monitor *mons, *selmon;
+ static Window root, wmcheckwin;
++static unsigned int click_range = 0;
++static unsigned int status_range;
+ 
+ /* configuration, allows nested code to access above variables */
+ #include "config.h"
+@@ -419,7 +426,7 @@ attachstack(Client *c)
+ void
+ buttonpress(XEvent *e)
+ {
+-	unsigned int i, x, click;
++	unsigned int i, x, click, w;
+ 	Arg arg = {0};
+ 	Client *c;
+ 	Monitor *m;
+@@ -440,10 +447,27 @@ buttonpress(XEvent *e)
+ 		if (i < LENGTH(tags)) {
+ 			click = ClkTagBar;
+ 			arg.ui = 1 << i;
+-		} else if (ev->x < x + TEXTW(selmon->ltsymbol))
++		} else if (ev->x < x + TEXTW(selmon->ltsymbol)) {
+ 			click = ClkLtSymbol;
+-		else
++		} else if (ev->x > selmon->ww - status_range) {
+ 			click = ClkStatusText;
++		} else {
++			x += TEXTW(selmon->ltsymbol);
++			w = selmon->ww - status_range - x;
++			if (w >= click_range) {
++				i = 0;
++				x += (w - click_range) / 2;
++				if (ev->x >= x) {
++					do
++						x += TEXTW(clickables[i].icon);
++                                        while (ev->x >= x && ++i < LENGTH(clickables));
++					if (i < LENGTH(clickables)) {
++						click = ClkIcon;
++						arg.v = clickables[i].command;
++					}
++				}
++			}
++		}
+ 	} else if ((c = wintoclient(ev->window))) {
+ 		focus(c);
+ 		restack(selmon);
+@@ -453,7 +477,7 @@ buttonpress(XEvent *e)
+ 	for (i = 0; i < LENGTH(buttons); i++)
+ 		if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
+ 		&& CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
+-			buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
++			buttons[i].func((click == ClkTagBar ||click == ClkIcon) && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
+ }
+ 
+ void
+@@ -713,6 +737,7 @@ drawbar(Monitor *m)
+ 		drw_text(drw, m->ww - tw, 0, tw, bh, 0, stext, 0);
+ 	}
+ 
++	status_range = tw;
+ 	for (c = m->clients; c; c = c->next) {
+ 		occ |= c->tags;
+ 		if (c->isurgent)
+@@ -736,6 +761,14 @@ drawbar(Monitor *m)
+ 	if ((w = m->ww - tw - x) > bh) {
+ 			drw_setscheme(drw, scheme[SchemeNorm]);
+ 			drw_rect(drw, x, 0, w, bh, 1, 1);
++			if (w >= click_range) {
++				x += (w - click_range) / 2;
++				for (i = 0; i < LENGTH(clickables); i++) {
++		                        w = TEXTW(clickables[i].icon);
++		                        drw_text(drw, x, 0, w, bh, lrpad / 2, clickables[i].icon, 0);
++					x += w;
++				}
++			}
+ 	}
+ 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
+ }
+@@ -1559,6 +1592,9 @@ setup(void)
+ 	scheme = ecalloc(LENGTH(colors), sizeof(Clr *));
+ 	for (i = 0; i < LENGTH(colors); i++)
+ 		scheme[i] = drw_scm_create(drw, colors[i], 3);
++	for (i = 0; i < LENGTH(clickables); i++)
++		click_range += TEXTW(clickables[i].icon);
++
+ 	/* init bars */
+ 	updatebars();
+ 	updatestatus();

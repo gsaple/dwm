@@ -1,0 +1,313 @@
+diff --git a/config.def.h b/config.def.h
+index 061ad66..a1bf122 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -18,6 +18,34 @@ static const char *colors[][3]      = {
+ 	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
+ };
+ 
++/* colours for status bar, at least one entry is needed
++ * default foreground is colours from gruvbox dark
++ * default background should be the same as bg in SchemeNorm
++ */
++static const char *sb_colours[][2] = {
++       /* fg           bg  */
++       { "#cc241d", col_gray1},
++       { "#98971a", col_gray1},
++       { "#d79921", col_gray1},
++       { "#458588", col_gray1},
++       { "#b16286", col_gray1},
++       { "#689d6a", col_gray1},
++};
++/* allow colours to shift right each time drawbar() is called, useless but fun */
++static unsigned int colour_shift = 0;
++/* for rounded corner: pixels between each components */
++static unsigned int r_gap = 10;
++/* for rounded corner: see github comment, tldr, try 2 or 3 */
++static unsigned int jagged_pixel = 3;
++/* for xmonad: distance between the top edge of the underline and the bottom of the sb */
++static unsigned int underline_offset = 2;
++/* for xmonad: height of the underline; so maximum value should be underline_offset */
++static unsigned int underline_height = 2;
++/* for xmonad: pixels between each components*/
++static unsigned int m_gap = 15;
++/* for xmonad: distance between the right of the screen and the most right component */
++static unsigned int right_padding = 5;
++
+ /* tagging */
+ static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+ 
+@@ -84,6 +112,8 @@ static const Key keys[] = {
+ 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
+ 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
+ 	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
++	{ MODKEY,                       XK_s,      sb_scroll,      {0} },
++	{ MODKEY|ShiftMask,             XK_s,      sb_shiftcolour, {0} },
+ 	TAGKEYS(                        XK_1,                      0)
+ 	TAGKEYS(                        XK_2,                      1)
+ 	TAGKEYS(                        XK_3,                      2)
+diff --git a/drw.c b/drw.c
+index a58a2b4..d6dbcef 100644
+--- a/drw.c
++++ b/drw.c
+@@ -235,6 +235,25 @@ drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled, int
+ 		XDrawRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w - 1, h - 1);
+ }
+ 
++void
++drw_arrow(Drw *drw, int x1, int y1, int x2, int y2, int x3, int y3, int invert)
++{
++	if (!drw || !drw->scheme)
++		return;
++	int npoints = 3;
++	XPoint* points;
++	XSetForeground(drw->dpy, drw->gc, invert ? drw->scheme[ColBg].pixel : drw->scheme[ColFg].pixel);
++	points = malloc(sizeof(XPoint) * npoints);
++	points[0].x = x1;
++	points[0].y = y1;
++	points[1].x = x2;
++	points[1].y = y2;
++	points[2].x = x3;
++	points[2].y = y3;
++	XFillPolygon(drw->dpy, drw->drawable, drw->gc, points, npoints, Convex, CoordModeOrigin);
++	free(points);
++}
++
+ int
+ drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lpad, const char *text, int invert)
+ {
+diff --git a/drw.h b/drw.h
+index 6471431..5af0e12 100644
+--- a/drw.h
++++ b/drw.h
+@@ -52,6 +52,7 @@ void drw_setscheme(Drw *drw, Clr *scm);
+ 
+ /* Drawing functions */
+ void drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled, int invert);
++void drw_arrow(Drw *drw, int x1, int y1, int x2, int y2, int x3, int y3, int invert);
+ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lpad, const char *text, int invert);
+ 
+ /* Map functions */
+diff --git a/dwm.c b/dwm.c
+index e5efb6a..99f2a61 100644
+--- a/dwm.c
++++ b/dwm.c
+@@ -111,6 +111,8 @@ typedef struct {
+ 	void (*arrange)(Monitor *);
+ } Layout;
+ 
++typedef void (*drw_funcs)(int, int *, int, int, const char **);
++
+ struct Monitor {
+ 	char ltsymbol[16];
+ 	float mfact;
+@@ -162,6 +164,11 @@ static void detach(Client *c);
+ static void detachstack(Client *c);
+ static Monitor *dirtomon(int dir);
+ static void drawbar(Monitor *m);
++static void sb_powerline(int x, int *tw, int n, int index, const char **info);
++static void sb_roundcorner(int x, int *tw, int n, int index, const char **info);
++static void sb_xmonad(int x, int *tw, int n, int index, const char **info);
++static void sb_scroll(const Arg *arg);
++static void sb_shiftcolour(const Arg *arg);
+ static void drawbars(void);
+ static void enternotify(XEvent *e);
+ static void expose(XEvent *e);
+@@ -264,10 +271,13 @@ static Atom wmatom[WMLast], netatom[NetLast];
+ static int running = 1;
+ static Cur *cursor[CurLast];
+ static Clr **scheme;
++static Clr **sb_scheme;
+ static Display *dpy;
+ static Drw *drw;
+ static Monitor *mons, *selmon;
+ static Window root, wmcheckwin;
++static unsigned int counter = 0;
++static unsigned int which_sb = 0;
+ 
+ /* configuration, allows nested code to access above variables */
+ #include "config.h"
+@@ -490,6 +500,9 @@ cleanup(void)
+ 	for (i = 0; i < LENGTH(colors); i++)
+ 		free(scheme[i]);
+ 	free(scheme);
++	for (i = 0; i < LENGTH(sb_colours); i++)
++		free(sb_scheme[i]);
++	free(sb_scheme);
+ 	XDestroyWindow(dpy, wmcheckwin);
+ 	drw_free(drw);
+ 	XSync(dpy, False);
+@@ -704,15 +717,25 @@ drawbar(Monitor *m)
+ 	int boxw = drw->fonts->h / 6 + 2;
+ 	unsigned int i, occ = 0, urg = 0;
+ 	Client *c;
++	drw_funcs statusbar[3] = {sb_roundcorner, sb_powerline, sb_xmonad};
++	int n = -1, index = 0;
++	const char *delim = ",";
++	/* assuming maximum of 20 'components' in the status bar */
++	const char *info[20];
++	char scopy[256];
+ 
+ 	if (!m->showbar)
+ 		return;
+ 
+ 	/* draw status first so it can be overdrawn by tags later */
+ 	if (m == selmon) { /* status is only drawn on selected monitor */
+-		drw_setscheme(drw, scheme[SchemeNorm]);
+-		tw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
+-		drw_text(drw, m->ww - tw, 0, tw, bh, 0, stext, 0);
++		strcpy(scopy, stext);
++		char *token = strtok(scopy, delim);
++		while (token) {
++			info[++n] = token;
++			token = strtok(NULL, delim);
++		}
++		statusbar[which_sb % LENGTH(statusbar)](m->ww, &tw, n, index, info);
+ 	}
+ 
+ 	for (c = m->clients; c; c = c->next) {
+@@ -737,7 +760,7 @@ drawbar(Monitor *m)
+ 
+ 	if ((w = m->ww - tw - x) > bh) {
+ 		if (m->sel) {
+-			drw_setscheme(drw, scheme[m == selmon ? SchemeSel : SchemeNorm]);
++			drw_setscheme(drw, scheme[SchemeNorm]);
+ 			drw_text(drw, x, 0, w, bh, lrpad / 2, m->sel->name, 0);
+ 			if (m->sel->isfloating)
+ 				drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
+@@ -749,6 +772,116 @@ drawbar(Monitor *m)
+ 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
+ }
+ 
++void
++sb_powerline(int x, int *tw, int n, int index, const char **info)
++{
++	int dxdy = bh / 2, w;
++	while (n >= 0) {
++		if (index != 0) {
++			drw_setscheme(drw, sb_scheme[(colour_shift ? counter : index) % LENGTH(sb_colours)]);
++		        /* draw two up and down right arrows */
++			drw_arrow(drw, x, 0, x + dxdy, 0, x, dxdy, 0);
++			drw_arrow(drw, x, dxdy, x + dxdy, bh, x, bh, 0);
++		}
++		w = TEXTW(info[n]);
++		x -= w;
++		if (colour_shift) {
++			index = 1;
++			drw_setscheme(drw, sb_scheme[counter++ % LENGTH(sb_colours)]);
++		} else {
++		        drw_setscheme(drw, sb_scheme[index++ % LENGTH(sb_colours)]);
++		}
++		drw_text(drw, x, 0, w, bh, lrpad / 2, info[n], 1);
++		/* draw left arrows */
++		drw_arrow(drw, x, 0, x, bh, x - dxdy, dxdy, 0);
++		x -= dxdy;
++		*tw = *tw + w + dxdy;
++		if (!n) {
++			drw_setscheme(drw, scheme[SchemeNorm]);
++			drw_arrow(drw, x, 0, x + dxdy, 0, x, dxdy, 1);
++			drw_arrow(drw, x, dxdy, x + dxdy, bh, x, bh, 1);
++		}
++		n--;
++	}
++	/* uncomment following two lines if the same height as roundcorner is needed */
++	/*
++	drw_rect(drw, selmon->ww - *tw, 0, *tw, jagged_pixel, 1, 1);
++	drw_rect(drw, selmon->ww - *tw, bh - jagged_pixel, *tw, jagged_pixel, 1, 1);
++	*/
++}
++
++void
++sb_roundcorner(int x, int *tw, int n, int index, const char **info)
++{
++	int w, wt;
++	int wc = TEXTW("") - lrpad;
++	while (n >= 0) {
++		if (index != 0) {
++			x -= r_gap;
++			drw_rect(drw, x, 0, r_gap, bh, 1, 1);
++		}
++		if (colour_shift) {
++			drw_setscheme(drw, sb_scheme[counter++ % LENGTH(sb_colours)]);
++		} else {
++		        drw_setscheme(drw, sb_scheme[index % LENGTH(sb_colours)]);
++		}
++		x -= wc;
++		drw_text(drw, x, 0, wc, bh, 0, "", 0);
++		w = TEXTW(info[n]) - lrpad;
++		x -= (w - 2 + wc);
++		drw_text(drw, x, 0, wc, bh, 0, "", 0);
++		drw_text(drw, x + wc - 1, 0, w, bh, 0, info[n], 1);
++		wt = 2 * wc + w -2;
++		*tw = *tw + (index ? r_gap + wt : wt);
++		index++;
++		n--;
++	}
++	drw_rect(drw, selmon->ww - *tw, 0, *tw, jagged_pixel, 1, 1);
++	drw_rect(drw, selmon->ww - *tw, bh - jagged_pixel, *tw, jagged_pixel, 1, 1);
++}
++
++void
++sb_xmonad(int x, int *tw, int n, int index, const char **info)
++{
++	int w;
++	x -= right_padding;
++	drw_rect(drw, x, 0, right_padding, bh, 1, 1);
++	while (n >= 0) {
++		if (index != 0) {
++			x -= m_gap;
++			drw_rect(drw, x, 0, m_gap, bh, 1, 1);
++		}
++
++		if (colour_shift) {
++			drw_setscheme(drw, sb_scheme[counter++ % LENGTH(sb_colours)]);
++		} else {
++		        drw_setscheme(drw, sb_scheme[index % LENGTH(sb_colours)]);
++		}
++		w = TEXTW(info[n]) - lrpad;
++		x -= w;
++		drw_text(drw, x, 0, w, bh, 0, info[n], 0);
++		drw_rect(drw, x, bh - underline_offset, w, underline_height, 1, 0);
++		*tw = *tw + (index ? m_gap + w : w);
++		index++;
++		n--;
++	}
++	*tw = *tw + right_padding; // add back right padding
++}
++
++void
++sb_scroll(const Arg *arg)
++{
++	which_sb++;
++	drawbar(selmon);
++}
++
++void
++sb_shiftcolour(const Arg *arg)
++{
++	colour_shift ^= 1;
++	drawbar(selmon);
++}
++
+ void
+ drawbars(void)
+ {
+@@ -1546,7 +1679,7 @@ setup(void)
+ 	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
+ 		die("no fonts could be loaded.");
+ 	lrpad = drw->fonts->h;
+-	bh = drw->fonts->h + 2;
++	bh = drw->fonts->h + 4;
+ 	updategeom();
+ 	/* init atoms */
+ 	utf8string = XInternAtom(dpy, "UTF8_STRING", False);
+@@ -1571,6 +1704,9 @@ setup(void)
+ 	scheme = ecalloc(LENGTH(colors), sizeof(Clr *));
+ 	for (i = 0; i < LENGTH(colors); i++)
+ 		scheme[i] = drw_scm_create(drw, colors[i], 3);
++	sb_scheme = ecalloc(LENGTH(sb_colours), sizeof(Clr *));
++	for (i = 0; i < LENGTH(sb_colours); i++)
++		sb_scheme[i] = drw_scm_create(drw, sb_colours[i], 2);
+ 	/* init bars */
+ 	updatebars();
+ 	updatestatus();
