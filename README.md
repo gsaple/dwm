@@ -20,4 +20,36 @@ Following patches are taken from the [dwm patch website](https://dwm.suckless.or
 - [Xresources](https://dwm.suckless.org/patches/xresources/dwm-xresources-20210827-138b405.diff): allows to handle settings from Xresources.
 
 ## My Patches
-Following patches are inspired by the community patches. I ended up with my own implementation because I want to bloat it in my own way.
+Following patches are inspired by the community patches. I ended up with my own implementation simply because I want to bloat it in my own way.
+
+### [clickable_icons](https://github.com/gsaple/dwm/blob/main/my_patches/clickable_icons.diff)
+#### description
+- draw a set of clickable icons (or texts) at where the title bar used to be.
+- dwm `drawbar()` draws status bar first, tag bar second, title bar last. If there is not enough space left to draw _**all**_ icons, then _**no**_ icon will be drawn.
+#### patch
+- patch it ON TOP OF [notitle](https://dwm.suckless.org/patches/notitle/dwm-notitle-20210715-138b405.diff).
+ 
+### [supreme_statusbar](https://github.com/gsaple/dwm/blob/main/my_patches/supreme_statusbar.diff)
+#### description
+- be able to customise the colour of the status bar WITHIN `config.def.h`
+- optional to cycle through 3 different styles of status bar: powerline, roundedcorner, xmonad(inspired by [DistroTube](https://www.youtube.com/c/DistroTube)'s Xmonad build).
+- optional to shift colour to the right each time `drawbar()` is called, which is, to no one's suprise, absolutely useless.
+- some notes related to rounded corner:
+  - unlike the powerline style, no algorithm is used to rasterise a half-circle (while I tried and failed :sweat:).
+  - instead, two nerd font half-circle glyphs are used to 'cheat' a rounded corner. As a result, two rectangles (up and down) are jagged out.
+  - A workaround is to fill those two rectangles with background colour to 'clear' it, causing the roundedcorner-style-status-bar slightly shorter than the other two.
+  - unfortunately the height of the aforementioned rectangles seems to be font-size dependent (usually is 3, but sometimes 2 is better).
+#### patch
+- nerdfont is needed.
+- `stext` needs to be comma (`,`) seperated as the whole string will be splited using comma as a delimiter, e.g.
+  ```
+  xsetroot -name "$info4,$info3,$info2,$info1"
+  ```
+- this patch is NOT compatible with [status2d](https://dwm.suckless.org/patches/status2d/).
+- all config variables are defined in `config.def.h` with a explanatory comment except for `jagged_pixel` which is roughly explained in the above notes.
+
+## TODO
+document all the patches and submit some useful ones to the community.
+
+
+
