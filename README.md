@@ -31,7 +31,7 @@ Following patches are inspired by the community patches. I ended up with my own 
  
 ### [supreme_statusbar](https://github.com/gsaple/dwm/blob/main/my_patches/supreme_statusbar.diff)
 #### description
-- be able to customise the colour of the status bar WITHIN `config.def.h`
+- be able to customise the colour of the status bar WITHIN `config.def.h`.
 - optional to cycle through 3 different styles of status bar: powerline, roundedcorner, xmonad(inspired by [DistroTube](https://www.youtube.com/c/DistroTube)'s Xmonad build).
 - optional to shift colour to the right each time `drawbar()` is called, which is, to no one's suprise, absolutely useless.
 - some notes related to rounded corner:
@@ -47,6 +47,13 @@ Following patches are inspired by the community patches. I ended up with my own 
   ```
 - this patch is NOT compatible with [status2d](https://dwm.suckless.org/patches/status2d/).
 - all config variables are defined in `config.def.h` with a explanatory comment except for `jagged_pixel` which is roughly explained in the above notes.
+
+### [colourful_tags](https://github.com/gsaple/dwm/blob/main/my_patches/colourful_tags.diff)
+#### description
+- different tags have colourful foregrounds, the same background, regardless of being viewed or not.
+- the tag being viewed is distinguished by a different icon (or text) from its non-viewed counterparts.
+#### patch
+- nerdfont is needed
 
 ## TODO
 document all the patches and submit some useful ones to the community.
