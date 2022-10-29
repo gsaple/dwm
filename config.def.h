@@ -113,8 +113,8 @@ static const char *light_increase[] = {"brightness.sh", "up", NULL};
 static const char *light_decrease[] = {"brightness.sh", "down", NULL};
 
 static const Click clickables[] = {
-        {"📁", (const char*[]) {"st", "-e", "fish", "-c", "f", NULL}},
-	{"🌍", (const char*[]) {"firefox", NULL}},
+    {"📁", (const char*[]) {"pcmanfm", NULL}},
+    {"🌍", (const char*[]) {"firefox", NULL}},
 };
 
 /*
