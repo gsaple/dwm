@@ -1,0 +1,164 @@
+diff --git a/config.def.h b/config.def.h
+index 1da4abc..e68a42a 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -2,7 +2,7 @@
+ #include <X11/XF86keysym.h>
+ 
+ /* appearance */
+-static const unsigned int borderpx  = 3;        /* border pixel of windows */
++static const unsigned int borderpx  = 0;        /* border pixel of windows */
+ static const unsigned int snap      = 32;       /* snap pixel */
+ static const unsigned int gappih    = 20;       /* horiz inner gap between windows */
+ static const unsigned int gappiv    = 10;       /* vert inner gap between windows */
+@@ -48,8 +48,6 @@ static char *tag_colors[][2] = {
+        { tag6,     normbgcolor},
+ };
+ 
+-static unsigned int counter = 0;
+-static unsigned int which_status = 0;
+ static unsigned int colour_change = 0;
+ static unsigned int r_gap = 10; // pixels between each components for rounded corner status bar
+ static unsigned int jagged_pixel = 2; // for rounded corners
+@@ -111,12 +109,21 @@ static const char *volume_decrease[] = {"volume.sh", "down", NULL};
+ static const char *volume_mute[] = {"volume.sh", "mute", NULL};
+ static const char *light_increase[] = {"brightness.sh", "up", NULL};
+ static const char *light_decrease[] = {"brightness.sh", "down", NULL};
++static const char *btm[] = {"st", "-g", "42x12+54+56", "-e", "btm", NULL};
++static const char *neofetch[] = {"st", "-g", "30x12+585+58", "-e", "fish", "-c", "bash", NULL};
++static const char *cmatrix[] = {"st", "-g", "84x25+54+432", "-e", "fish", "-c", "r", NULL};
++//static const char *donut[] = {"st", "-g", "86x38+1050+88", "-e", "donut", NULL};
++static const char *donut[] = {"alacritty", "-e", "donut", NULL};
+ 
+ static const Click clickables[] = {
+-        {"📁", (const char*[]) {"st", "-e", "fish", "-c", "f", NULL}},
+-	{"🌍", (const char*[]) {"firefox", NULL}},
++	{"🧠", btm},
++	{"🛠️", neofetch},
++	{"🌈", cmatrix},
++	{"💪", donut},
+ };
+ 
++static const char *party[] = {"🧨", "✨", "🎄", "🎃", "🎁", "🎉", "🥳", "🎈", "🎋", "🏆", "💫", "💥"};
++
+ /*
+  * Xresources preferences to load at startup
+  */
+@@ -157,6 +164,7 @@ static const Key keys[] = {
+ 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
+ 	{ MODKEY,                       XK_n,      shiftview,      {.i = +1 } },
+ 	{ MODKEY,                       XK_b,      shiftview,      {.i = -1 } },
++	{ MODKEY|ShiftMask,              XK_b,      togglebar,      {0} },
+ 	{ MODKEY,                       XK_m,      msaltfocus,     {0} },
+ 	{ MODKEY,                       XK_z,      zoom,           {0} },
+ 	{ MODKEY,                       XK_Left,   setmfact,       {.f = -0.05} },
+diff --git a/dwm.c b/dwm.c
+index 36c6bac..990bf4d 100644
+--- a/dwm.c
++++ b/dwm.c
+@@ -312,6 +312,9 @@ static Monitor *mons, *selmon;
+ static Window root, wmcheckwin;
+ static unsigned int click_range = 0;
+ static unsigned int status_range;
++static unsigned int counter = 0;
++static unsigned int _counter = 0;
++static unsigned int which_status = 0;
+ 
+ /* configuration, allows nested code to access above variables */
+ #include "config.h"
+@@ -809,7 +812,16 @@ statusbarscroll(const Arg *arg)
+ 
+ void togglelight(const Arg *arg)
+ {
++	int i;
+ 	colour_change ^= 1;
++	click_range = 0;
++	if (colour_change) {
++		for (i = 0; i < LENGTH(party); i++)
++			click_range += TEXTW(party[i]);
++	} else {
++		for (i = 0; i < LENGTH(clickables); i++)
++			click_range += TEXTW(clickables[i].icon);
++	}
+ 	drawbar(selmon);
+ }
+ 
+@@ -851,8 +863,18 @@ drawbar(Monitor *m)
+ 			urg |= c->tags;
+ 	}
+ 	x = 0;
++	int turn = 0;
+ 	for (i = 0; i < LENGTH(tags); i++) {
+-		_tag = occupy[m->tagset[m->seltags] & 1 << i ? 0 : 1];
++		if (colour_change) {
++			if (i == _counter % LENGTH(tags)) {
++				_tag = occupy[0];
++				turn = i;
++			} else {
++				_tag = occupy[1];
++			}
++		} else {
++			_tag = occupy[m->tagset[m->seltags] & 1 << i ? 0 : 1];
++		}
+ 		w = TEXTW(_tag);
+ 		drw_setscheme(drw, tag_scheme[i]);
+ 		drw_text(drw, x, 0, w, bh, lrpad / 2, _tag, urg & 1 << i);
+@@ -862,11 +884,16 @@ drawbar(Monitor *m)
+ 				urg & 1 << i);
+ 		x += w;
+ 	}
++	_counter++;
+ 	writeltsymbol(selmon);
+ 	w = TEXTW(m->ltsymbol);
+ 	//use the colour of the current view tag to print ltsymbol
+ 	//builtin func doc found on https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
+-	drw_setscheme(drw, tag_scheme[31-__builtin_clz(m->tagset[m->seltags])]);
++	if (colour_change) {
++		drw_setscheme(drw, tag_scheme[turn]);
++	} else {
++		drw_setscheme(drw, tag_scheme[31-__builtin_clz(m->tagset[m->seltags])]);
++	}
+ 
+ 	x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
+ 
+@@ -875,10 +902,19 @@ drawbar(Monitor *m)
+ 			drw_rect(drw, x, 0, w, bh, 1, 1);
+ 			if (w >= click_range) {
+ 				x += (w - click_range) / 2;
+-				for (i = 0; i < LENGTH(clickables); i++) {
+-		                        w = TEXTW(clickables[i].icon);
+-		                        drw_text(drw, x, 0, w, bh, lrpad / 2, clickables[i].icon, 0);
+-					x += w;
++				if (colour_change) {
++					for (i = 0; i < LENGTH(party); i++) {
++						index = (i + counter) % LENGTH(party);
++						w = TEXTW(party[index]);
++						drw_text(drw, x, 0, w, bh, lrpad / 2, party[index], 0);
++						x += w;
++					}
++				} else {
++					for (i = 0; i < LENGTH(clickables); i++) {
++						w = TEXTW(clickables[i].icon);
++						drw_text(drw, x, 0, w, bh, lrpad / 2, clickables[i].icon, 0);
++						x += w;
++					}
+ 				}
+ 			}
+ 	}
+@@ -898,6 +934,7 @@ void
+ statusbar_powerline(int x, int *tw, int n, int index, const char **info)
+ {
+ 	int dxdy = bh / 2, w;
++	int rightmost = x;
+ 	while (n >= 0) {
+ 		if (index != 0) {
+ 		        //draw two up and down right arrows
+@@ -925,6 +962,8 @@ statusbar_powerline(int x, int *tw, int n, int index, const char **info)
+ 		}
+ 		n--;
+ 	}
++	drw_rect(drw, rightmost - *tw, 0, *tw, jagged_pixel, 1, 1);
++	drw_rect(drw, rightmost - *tw, bh - jagged_pixel, *tw, jagged_pixel, 1, 1);
+ }
+ 
+ void
