@@ -823,7 +823,7 @@ drawbar(Monitor *m)
 	const char *_tag;
 	Client *c;
         drw_funcs statusbar[3] =
-		{statusbar_roundcorner, statusbar_powerline, statusbar_xmonad};
+		{statusbar_xmonad, statusbar_roundcorner, statusbar_powerline};
 
 	int n = -1, index = 0;
 	const char *delim = ",";
