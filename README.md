@@ -33,7 +33,7 @@ Following patches are inspired by the community patches. I ended up with my own 
 #### description
 - be able to customise the colour of the status bar WITHIN `config.def.h`.
 - optional to cycle through 3 different styles of status bar: powerline, roundedcorner, xmonad(inspired by [DistroTube](https://www.youtube.com/c/DistroTube)'s Xmonad build).
-- optional to shift colour to the right each time `drawbar()` is called, which is, to no one's suprise, absolutely useless.
+- optional to shift colour to the right each time `drawbar()` is called, which is, to no one's surprise, absolutely useless.
 - some notes related to rounded corner:
   - unlike the powerline style, no algorithm is used to rasterise a half-circle (while I tried and failed :sweat:).
   - instead, two nerd font half-circle glyphs are used to 'cheat' a rounded corner. As a result, two rectangles (up and down) are jagged out.
@@ -41,7 +41,7 @@ Following patches are inspired by the community patches. I ended up with my own 
   - unfortunately the height of the aforementioned rectangles seems to be font-size dependent (usually is 3, but sometimes 2 is better).
 #### patch
 - nerdfont is needed.
-- `stext` needs to be comma (`,`) seperated as the whole string will be splited using comma as a delimiter, e.g.
+- `stext` needs to be comma (`,`) separated as the whole string will be split using comma as a delimiter, e.g.
   ```
   xsetroot -name "$info4,$info3,$info2,$info1"
   ```
