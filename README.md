@@ -2,6 +2,8 @@
 My built of the suckless [dynamic window manager](https://dwm.suckless.org).<br />
 Massive shout-out to Bakkeby's [repo](https://github.com/bakkeby/dwm-commented) for the great documentation of this elegant software.
 
+![gh](https://user-images.githubusercontent.com/108666441/212461101-b278014c-edd7-4d32-b767-3af443299062.png)
+
 https://user-images.githubusercontent.com/108666441/195844889-2adc4385-bfbd-4165-af44-2cdb6bc85db0.mp4
 
 ## Community Patches
