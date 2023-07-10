@@ -146,7 +146,7 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_w,      spawn,          SHCMD("wallpaper.sh r") },
 	{ MODKEY|ShiftMask,             XK_s,      spawn,          SHCMD("wallpaper.sh s") },
 	{ MODKEY,                       XK_s,      statusbarscroll, {0} },
-	{ MODKEY,                       XK_l,      togglelight,    {0} },
+	//{ MODKEY,                       XK_l,      togglelight,    {0} },
 	{ MODKEY,                       XK_x,      spawn,          SHCMD("logout.sh") },
 	{ MODKEY,                       XK_i,      spawn,          {.v = (const char*[]) {"firefox", NULL}} },
 	{ 0,                            XK_F2,     spawn,          {.v = (const char*[]) {"simple-scan", NULL}} },
